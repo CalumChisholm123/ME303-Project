@@ -9,7 +9,7 @@ b = 1.33;          % m
 Caf = 25000;       % N/rad
 Car = 21000;       % N/rad
 Iz = 2420;         % kg·m^2
-u = 75 / 3.6;      % Convert from km/h to m/s
+u = 330 / 3.6;      % Convert from km/h to m/s
 delta = 0.1;       % Step steering input (rad)
 
 % Time setup
@@ -56,7 +56,7 @@ function ynew = rk4(f, t, y, h)
     ynew = y + (h / 6) * (k1 + 2*k2 + 2*k3 + k4);
 end
 
-plot(t,x(2,:),"b", LineWidth=2);
+plot(t,x(1,:),"b", LineWidth=2);
 title("Time vs Yaw")
 ylabel("Lateral Velocity");
 xlabel("Time");
