@@ -63,6 +63,18 @@ xlabel("Time");
 grid on;
 
 
+%Euler Method (forward)
+function [t,x] = euler_1(ode, tspan, x0, h)
+
+    t = tspan(1) : h : tspan(2);
+    n = length(t);
+    x = zeros(length(x0), n);
+    x(:,1) = x0;
+
+    for i = 1:length(t) -1;
+        x(:, i+1) = x(:, i) + h * ode(t(i), x(:, i));
+    end
+end
 
 % Calums Speed Changer 
 u_values = [20,50,75,100,200,300] / 3.6;
