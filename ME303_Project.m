@@ -61,3 +61,29 @@ title("Time vs Yaw")
 ylabel("Lateral Velocity");
 xlabel("Time");
 grid on;
+
+
+
+% Calums Speed Changer 
+u_values = [20,50,75,100,200,300] / 3.6;
+
+figure(1);
+hold on;
+for i = 1:length(u_values)
+    u = u_values(i);
+
+    A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
+     (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
+    
+    B = [Caf/m; a*Caf/Iz];
+
+    f = @(t, x) A * x + B * delta;
+
+    [t, x] = solveIVP(f, [0, T], x0, dt, @rk4);
+
+    
+    plot(t,x(1,:),'Displayname', ['u = ',num2str(u)]);
+
+end  
+legend;
+title("Different u values");
