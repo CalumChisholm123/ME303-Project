@@ -56,8 +56,16 @@ function ynew = rk4(f, t, y, h)
     ynew = y + (h / 6) * (k1 + 2*k2 + 2*k3 + k4);
 end
 
-plot(t,x(1,:),"b", LineWidth=2);
+plot(t,x(2,:),"b", LineWidth=2);
 title("Time vs Yaw")
 ylabel("Lateral Velocity");
 xlabel("Time");
 grid on;
+
+
+%lateralspeed = -13.0964*exp(-1.9745*t) + 24.4684*exp(-0.9839*t) - 11.3720;
+% yaw = -0.2496*exp(-1.9745*t) - 0.6962*exp(-0.9839*t) + 0.9457;
+% plot(t,lateralspeed)
+% title("Time vs Lateral Speed Sol")
+% plot(t,yaw)
+% title("Time vs Yaw Solution")
