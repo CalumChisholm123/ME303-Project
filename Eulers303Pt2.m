@@ -1,6 +1,6 @@
 %Parameters for Vehicle
 m = 1400;          % kg
-a = 1.14;          % m test
+a = 1.14;          % m
 b = 1.33;          % m
 Caf = 25000;       % N/rad
 Car = 21000;       % N/rad
