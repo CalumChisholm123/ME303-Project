@@ -46,54 +46,7 @@ function [t,x] = euler_1(ode, tspan, x0, h)
     end
 end
 
-
-
-stepSize = [0.1, 0.05, 0.01, 0.001];
-
-figure (1);
-hold on;
-for h = stepSize
-    [t, x] = euler_1(bicycle_ODE, tspan, x0, h);
-    plot(t, x(2,:), 'DisplayName', ['h = ', num2str(h)]);
-end
-
-title('Euler Method - Yaw - Grid Independence Check');
-xlabel('Time (s)');
-ylabel('Yaw rate (rad/s)');
-legend;
-grid on;
-
-h_selected = 0.01; % Chosen based on grid study
-[t, x] = euler_1(bicycle_ODE, tspan, x0, h_selected);
-
-figure(2);
-plot(t, x(2,:), 'b', 'LineWidth', 1.5);
-title('Final Euler Solution (h = 0.01) - Yaw');
-xlabel('Time (s)');
-ylabel('Yaw rate (rad/s)');
-grid on;
-
-figure(3);
-hold on;
-for h = stepSize
-    [t, x] = euler_1(bicycle_ODE, tspan, x0, h);
-    plot(t, x(1,:), 'DisplayName', ['h = ', num2str(h)]);
-end
-title('Eulers Method - Lateral Velocity - Grid Independence Check');
-xlabel('Time (s)');
-ylabel('Lateral Velocity \dot{y} (m/s)');
-legend;
-grid on;
-
-figure(4);
-plot(t, x(1,:), 'b', 'LineWidth', 1.5);
-title('Final Euler Solution (h = 0.01) - Velocity');
-xlabel('Time (s)');
-ylabel('Lateral Velocity \dot{y} (m/s)');
-grid on;
-
 %error solver
-
 
 stepSize = [0.1, 0.05, 0.01, 0.001];
 
