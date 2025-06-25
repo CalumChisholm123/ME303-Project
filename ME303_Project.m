@@ -81,8 +81,7 @@ end
 % Calums Speed Changer 
 u_values = [20,50,75,100,200,300] / 3.6;
 
-figure(1);
-hold on;
+%RK4 different Longitudinal Speeds
 for i = 1:length(u_values)
     u = u_values(i);
 
@@ -93,17 +92,24 @@ for i = 1:length(u_values)
 
     f = @(t, x) A * x + B * delta;
     [t, x] = solveIVP(f, [0, T], x0, dt, @rk4);
-
-    plot(t,x(1,:),'Displayname', ['u = ',num2str(u)]);
+    figure(1);
+    hold on;
+    plot(t,x(1,:),'DisplayName', ['u = ',num2str(u)]);
+    legend;
+    xlabel('Times (s)');
+    ylabel('Lateral Acceleration')
+    title("Different u values - RK4");
+    figure(2);
+    hold on;
+    plot(t,x(2,:),'DisplayName', ['u = ',num2str(u)]);
+    legend;
+    xlabel('Times (s)');
+    ylabel('Yaw Rate')
+    title("Different u values - RK4");
 
 end  
-legend;
-xlabel('Times (s)');
-ylabel('Lateral Acceleration')
-title("Different u values - RK4");
 
-figure(2);
-hold on;
+%Eulers Longitudinal Speeds
 for p = 1:length(u_values)
     u = u_values(p);
 
@@ -116,10 +122,20 @@ for p = 1:length(u_values)
 
     [t, x] = euler_1(f, tspan, x0, dt);
 
-    plot(t,x(1,:),'Displayname', ['u = ',num2str(u)]);
+    figure(3);
+    hold on;
+    plot(t,x(1,:),'DisplayName', ['u = ',num2str(u)]);
+    legend;
+    xlabel('Times (s)');
+    ylabel('Lateral Acceleration')
+    title("Different u values - Euler");
+    figure(4);
+    hold on;
+    plot(t,x(2,:),'DisplayName', ['u = ',num2str(u)]);
+    legend;
+    xlabel('Times (s)');
+    ylabel('Yaw Rate')
+    title("Different u values - Euler");
 
 end  
-legend;
-xlabel('Times (s)');
-ylabel('Lateral Acceleration')
-title("Different u values - Euler");
+
