@@ -8,16 +8,14 @@ Iz = 2420;         % kg·m^2
 u = 75 / 3.6;      % Convert from km/h to m/s
 delta = 0.1;       % Step steering input (rad)
 
-%Matrix
+% Define A and B matrices (constant for constant u)
 A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
      (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
 
-B = [Caf*delta/m, a*Caf*delta/Iz];
+B = [Caf/m; a*Caf/Iz];
 
-A_u = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
-       (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
-
-B_u = [Caf*delta/m, a*Caf*delta/Iz];
+f = @(t, x) A * x + B * delta;
+x0 = [0; 0];
 
 %Define IVP
 tspan = [0,5];
@@ -56,6 +54,14 @@ h_selected = 0.01; % Chosen based on grid study
 % legend;
 % grid on;
 
+% Grid convergence
+times = tspan(1):1:tspan(2);
+actLatSpeed = -13.0964.*exp(-1.9745.*times) + 24.4684*exp(-0.9839.*times) - 11.3720;
+actYawRates = -0.2496.*exp(-1.9745.*times) - 0.6962.*exp(-0.9839.*times) + 0.9457;
+
+[L2_lat_speed, L2_yaw_rate] = grid_check_L2_norm(f, tspan, x0, stepSizes, actLatSpeed, actYawRates);
+
+
 function [t,x,y] = fwd_euler(A, B, tspan, h)
     t = tspan(1) : h : tspan(2);
     n = length(t);
@@ -69,9 +75,50 @@ function [t,x,y] = fwd_euler(A, B, tspan, h)
     end
 end
 
-function [t, x, y] = B1(tspan, h, u)
-    % u is longitudinal speed input in km/h -> convert to m/s in the func.
-    u = u ./ 3.6; %convert km/h to m/s;
-    
-    
+function [t,x] = euler_1(ode, tspan, x0, dt)
+
+    t = tspan(1) : dt : tspan(2);
+    n = length(t);
+    x = zeros(length(x0), n);
+    x(:,1) = x0;
+
+    for i = 1:length(t) -1;
+        x(:, i+1) = x(:, i) + dt .* ode(t(i), x(:, i));
+    end
 end
+
+function [L2LatSpeedNorm, L2YawRateNorm] = grid_check_L2_norm(ODE, tspan, x0, stepSizes, actLatSpeed, actYawRates)
+    L2LatSpeedNorm = zeros(length(stepSizes));
+    L2YawRateNorm = zeros(length(stepSizes));
+    times = tspan(1):1:tspan(2);
+
+    for i = 1:length(stepSizes)
+        [t, x_dot] = euler_1(ODE, tspan, x0, stepSizes(i));
+        latSpeedValues = zeros(0, length(times)); %vector to store length(times) values
+        yawRateValues = zeros(0, length(times));
+
+        for j = 1:length(times)
+            temp_indx = find(t == times(j));
+            latSpeedValues(j) = x_dot(1,temp_indx);
+            yawRateValues(j) = x_dot(2, temp_indx);
+        end 
+        L2_norm_lat = sqrt(sum(actLatSpeed - latSpeedValues).^2);
+        L2_norm_yaw = sqrt(sum(actYawRates - yawRateValues).^2);
+        
+        L2LatSpeedNorm(i) = L2_norm_lat;
+        L2YawRateNorm(i) = L2_norm_yaw;
+    end
+    length(L2YawRateNorm)
+    figure (1)
+    plot(log10(stepSizes), log10(L2LatSpeedNorm), 'o-');
+    title('Lateral speed grid refinement')
+    xlabel('log(step size)')
+    ylabel('log(error)')
+
+    figure (2)
+    plot(log10(stepSizes), log10(L2YawRateNorm), 'o-');
+    title('Yaw rate grid refinement');
+    xlabel('log(step size)')
+    ylabel('log(error)')
+end
+
