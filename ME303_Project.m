@@ -14,11 +14,7 @@ delta = 0.1;       % Step steering input (rad)
 
 % Time setup
 T = 5;             % Total simulation time (s)
-dt = 0.01; % Step Values 
-N = T/dt; % Number of Steps 
-t = linspace(0,T,N+1); % Time Vector 
-
-
+dt = [0.1, 0.05, 0.02, 0.01, 0.005]; % Step Values
 
 % Define A and B matrices (constant for constant u)
 A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
@@ -32,10 +28,36 @@ f = @(t, x) A * x + B * delta;
 % Initial condition: lateral velocity and yaw rate both zero
 x0 = [0; 0];
 
+% Initialize a struct array to store results for each iteration
+results = struct();
+
+% Loop over dt values
+for i = 1:length(dt)
+    h = dt(i); % Current step size
+    t = 0:h:T; % Time vector for current step size
+    
+    % Solve IVP for current step size
+    [t, x] = solveIVP(f, [0, T], x0, h, @rk4);
+    
+    % Store results in the struct
+    results(i).dt = h; % Store the step size
+    results(i).t = t;  % Store the time vector
+    results(i).x = x;  % Store the solution matrix
+    
+    % Plot results for current step size
+    figure;
+    plot(t, x(1,:), 'b', 'LineWidth', 2);
+    title(['Time vs Yaw for dt = ', num2str(h)]);
+    ylabel('Lateral Velocity');
+    xlabel('Time');
+    grid on;
+end
+
+A_sol = [-13.0964*exp(-1.9745*t) + 24.4684*exp(-0.9839*t) - 11.3720; 
+    -0.2496*exp(-1.9745*t)-0.6962*exp(-0.9839*t)+0.9457];
+
+
 % ==== FUNCTION DEFINITIONS ====
-
-[t, x] = solveIVP(f, [0, T], x0, dt, @rk4);
-
 
 % Generic IVP solver
 function [t, y] = solveIVP(f, tspan, y0, h, solver)
@@ -55,9 +77,3 @@ function ynew = rk4(f, t, y, h)
     k4 = f(t + h, y + h * k3);
     ynew = y + (h / 6) * (k1 + 2*k2 + 2*k3 + k4);
 end
-
-plot(t,x(1,:),"b", LineWidth=2);
-title("Time vs Yaw")
-ylabel("Lateral Velocity");
-xlabel("Time");
-grid on;
