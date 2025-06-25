@@ -1,7 +1,6 @@
+% RK4 method solver for vehicle dynamics - Grid independence study
 
-
-clear all; 
-clc;
+clear; clc;
 
 % Parameters
 m = 1400;          % kg
@@ -99,7 +98,7 @@ for i = 1:length(u_values)
 end  
 legend;
 xlabel('Times (s)');
-ylabel('Lateral Acceleration')
+yla
 title("Different u values - RK4");
 
 figure(2);
@@ -120,6 +119,4 @@ for p = 1:length(u_values)
 
 end  
 legend;
-xlabel('Times (s)');
-ylabel('Lateral Acceleration')
-title("Different u values - Euler");
+title("Different u values - Eulers");
