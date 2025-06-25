@@ -1,6 +1,7 @@
 
 
 clear all; 
+close all;
 clc;
 
 % Parameters
@@ -14,7 +15,7 @@ u = 75 / 3.6;      % Convert from km/h to m/s
 delta = 0.1;       % Step steering input (rad)
 
 % Time setup
-tspan = [0,5];
+tspan = [0,30];
 T = 5;             % Total simulation time (s)
 dt = 0.01; % Step Values 
 N = T/dt; % Number of Steps 
@@ -94,14 +95,14 @@ for i = 1:length(u_values)
     [t, x] = solveIVP(f, [0, T], x0, dt, @rk4);
     figure(1);
     hold on;
-    plot(t,x(1,:),'DisplayName', ['u = ',num2str(u)]);
+    plot(t,x(1,:),'DisplayName', ['u = ',num2str(u), 'm/s']);
     legend;
     xlabel('Times (s)');
-    ylabel('Lateral Acceleration')
+    ylabel('Lateral Acceleration (m/s)')
     title("Different u values - RK4");
     figure(2);
     hold on;
-    plot(t,x(2,:),'DisplayName', ['u = ',num2str(u)]);
+    plot(t,x(2,:),'DisplayName', ['u = ',num2str(u), 'm/s']);
     legend;
     xlabel('Times (s)');
     ylabel('Yaw Rate')
@@ -124,14 +125,14 @@ for p = 1:length(u_values)
 
     figure(3);
     hold on;
-    plot(t,x(1,:),'DisplayName', ['u = ',num2str(u)]);
+    plot(t,x(1,:),'DisplayName', ['u = ',num2str(u), 'm/s']);
     legend;
     xlabel('Times (s)');
-    ylabel('Lateral Acceleration')
+    ylabel('Lateral Acceleration (m/s2)')
     title("Different u values - Euler");
     figure(4);
     hold on;
-    plot(t,x(2,:),'DisplayName', ['u = ',num2str(u)]);
+    plot(t,x(2,:),'DisplayName', ['u = ',num2str(u), 'm/s']);
     legend;
     xlabel('Times (s)');
     ylabel('Yaw Rate')
