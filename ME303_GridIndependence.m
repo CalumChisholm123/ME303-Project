@@ -14,7 +14,7 @@ delta = 0.1;       % Step steering input (rad)
 
 % Time setup
 T = 5;             % Total simulation time (s)
-step_sizes = [0.1, 0.05, 0.02, 0.01, 0.005]; % Step Values
+step_sizes = [0.1, 0.01, 0.001, 0.0001]; % Step Values
 
 % Define A and B matrices (constant for constant u)
 A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
@@ -103,12 +103,12 @@ grid on;
 
 % 4. Create a log-log plot for visual verification of convergence
 figure;
-loglog(step_sizes, errors, 'o-', 'LineWidth', 2, 'MarkerSize', 8, 'DisplayName', 'Numerical Error');
+plot(log(step_sizes), log(errors), 'o-', 'LineWidth', 2, 'MarkerSize', 8, 'DisplayName', 'Numerical Error');
 hold on;
 % Plot a reference line with a slope of 4
 C = errors(1) / (step_sizes(1)^4); % Estimate constant C for the reference line
 ref_line = C * step_sizes.^4;
-loglog(step_sizes, ref_line, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Reference Slope of 4');
+plot(log(step_sizes), log(ref_line), 'r--', 'LineWidth', 1.5, 'DisplayName', 'Reference Slope of 4');
 hold off;
 
 title('RK4 Convergence: Error vs. Step Size');
