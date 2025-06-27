@@ -53,33 +53,30 @@
 % legend show; % Display the legend
 % hold off; % Release the plot hold
 
-
-clear all;
-clc
-
-y0 = 1;
-x0 = 0;
-h = 0.001;
-num_iteration = 5/h;
-
-
-xvalues = [];
-yvalues = [];
-yvalues(1) = y0;
-xvalues(1) = x0;
-
-
-for i = 1:num_iteration
-    ynew = yvalues(i) + h * yvalues(i);
-    xnew = xvalues(i) + h;
-
-    yvalues(i+1) = ynew;
-    xvalues(i+1) = xnew;
-end
-
-
-plot(xvalues,yvalues)
-xlabel("X Values")
-ylabel("Y Values")
-title("Eulers Method for e^x Step size 0.1")
-
+% 
+% clear all;
+% clc
+% f = @(x,y) exp(x);  % Also fixed function definition syntax
+% x0 = 0;
+% y0 = 1;
+% xfinal = 5;
+% 
+% h = 0.05;
+% 
+% N = (xfinal -x0)/h;
+% 
+% x(1) = x0;
+% y(1) = y0;
+% 
+% for n = 1:N
+%     y(n+1) = y(n) + h*f(x(n),y(n));
+%     x(n+1) = x(n) + h;
+% end
+% 
+% figure(1)
+% grid on;
+% plot(x,y)
+% 
+% title('Numerical Solution of IVP using Euler Method, Step Size 0.05');
+% xlabel("X Values")
+% ylabel("Y Values")    
