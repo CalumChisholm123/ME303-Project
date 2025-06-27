@@ -88,7 +88,7 @@ function [t,x] = euler_1(ode, tspan, x0, dt)
 end
 
 function [L2LatSpeedNorm, L2YawRateNorm] = grid_check_L2_norm(ODE, tspan, x0, stepSizes, actLatSpeed, actYawRates)
-    L2LatSpeedNorm = zeros(length(stepSizes));
+    L2LatSpeedNorm = zeros(length(stepSizes)); %Store L2 values for different stepSizes
     L2YawRateNorm = zeros(length(stepSizes));
     times = tspan(1):1:tspan(2);
 
@@ -108,7 +108,7 @@ function [L2LatSpeedNorm, L2YawRateNorm] = grid_check_L2_norm(ODE, tspan, x0, st
         L2LatSpeedNorm(i) = L2_norm_lat;
         L2YawRateNorm(i) = L2_norm_yaw;
     end
-    length(L2YawRateNorm)
+    
     figure (1)
     plot(log10(stepSizes), log10(L2LatSpeedNorm), 'o-');
     title('Lateral speed grid refinement')
