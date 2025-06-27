@@ -59,7 +59,7 @@ clc
 
 y0 = 1;
 x0 = 0;
-h = 0.;
+h = 0.001;
 num_iteration = 5/h;
 
 
@@ -81,5 +81,5 @@ end
 plot(xvalues,yvalues)
 xlabel("X Values")
 ylabel("Y Values")
-title("Eulers Method for e^x")
+title("Eulers Method for e^x Step size 0.1")
 
