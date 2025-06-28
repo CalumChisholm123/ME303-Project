@@ -15,26 +15,46 @@ delta = 0.1;       % Step steering input (rad)
 % Time setup
 tspan = [0,5];
 T = 5;             % Total simulation time (s)
-dt = 0.01; % Step Values 
-N = T/dt; % Number of Steps 
-t = linspace(0,T,N+1); % Time Vector 
+dt = [0.1,0.05,0.005,0.001];% Step Values 
 
-% Define A and B matrices (constant for constant u)
-A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
-     (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
+for i =1:length(dt)
+    stepval = dt(i)
+    N = T/dt; % Number of Steps 
+    t = linspace(0,T,N+1); % Time Vector 
+    
+    % Define A and B matrices (constant for constant u)
+    A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
+         (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
+    
+    B = [Caf/m; a*Caf/Iz];
+    
+    % Define ODE function: dx/dt = A*x + B*delta
+    f = @(t, x) A * x + B * delta;
+    
+    % Initial condition: lateral velocity and yaw rate both zero
+    x0 = [0; 0];
+    
+    [t, x] = solveIVP(f, [0, T], x0, stepval, @rk4);
 
-B = [Caf/m; a*Caf/Iz];
+    figure(1)
+    plot(t,x(2,:),"b", LineWidth=2);
+    hold on;
+    title("Time vs Yaw")
+    ylabel("Yaw Rate (degrees)");
+    xlabel("Time");
+    grid on;
+    
+    figure(2)
+    plot(t,x(1,:),"b", LineWidth=2);
+    hold on;
+    title("Time vs Lateral Velocity")
+    ylabel("Lateral Velocity");
+    xlabel("Time");
+    grid on;
+end
 
-% Define ODE function: dx/dt = A*x + B*delta
-f = @(t, x) A * x + B * delta;
-
-% Initial condition: lateral velocity and yaw rate both zero
-x0 = [0; 0];
 
 % ==== FUNCTION DEFINITIONS ====
-
-[t, x] = solveIVP(f, [0, T], x0, dt, @rk4);
-
 
 % Generic IVP solver
 function [t, y] = solveIVP(f, tspan, y0, h, solver)
@@ -55,11 +75,6 @@ function ynew = rk4(f, t, y, h)
     ynew = y + (h / 6) * (k1 + 2*k2 + 2*k3 + k4);
 end
 
-plot(t,x(1,:),"b", LineWidth=2);
-title("Time vs Yaw")
-ylabel("Lateral Velocity");
-xlabel("Time");
-grid on;
 
 
 %Euler Method (forward)
@@ -77,44 +92,44 @@ end
 
 % Calums Speed Changer 
 u_values = [20,50,75,100,200,300] / 3.6;
-
-figure(1);
-hold on;
-for i = 1:length(u_values)
-    u = u_values(i);
-
-    A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
-     (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
-    
-    B = [Caf/m; a*Caf/Iz];
-
-    f = @(t, x) A * x + B * delta;
-    [t, x] = solveIVP(f, [0, T], x0, dt, @rk4);
-
-    plot(t,x(1,:),'Displayname', ['u = ',num2str(u)]);
-
-end  
-legend;
-xlabel('Times (s)');
-yla
-title("Different u values - RK4");
-
-figure(2);
-hold on;
-for p = 1:length(u_values)
-    u = u_values(p);
-
-    A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
-     (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
-    
-    B = [Caf/m; a*Caf/Iz];
-
-    f = @(t, x) A * x + B * delta;
-
-    [t, x] = euler_1(f, tspan, x0, dt);
-
-    plot(t,x(1,:),'Displayname', ['u = ',num2str(u)]);
-
-end  
-legend;
-title("Different u values - Eulers");
+% 
+% figure(1);
+% hold on;
+% for i = 1:length(u_values)
+%     u = u_values(i);
+% 
+%     A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
+%      (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
+% 
+%     B = [Caf/m; a*Caf/Iz];
+% 
+%     f = @(t, x) A * x + B * delta;
+%     [t, x] = solveIVP(f, [0, T], x0, dt, @rk4);
+% 
+%     plot(t,x(1,:),'Displayname', ['u = ',num2str(u)]);
+% 
+% end  
+% legend;
+% xlabel('Times (s)');
+% yla
+% title("Different u values - RK4");
+% 
+% figure(2);
+% hold on;
+% for p = 1:length(u_values)
+%     u = u_values(p);
+% 
+%     A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
+%      (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
+% 
+%     B = [Caf/m; a*Caf/Iz];
+% 
+%     f = @(t, x) A * x + B * delta;
+% 
+%     [t, x] = euler_1(f, tspan, x0, dt);
+% 
+%     plot(t,x(1,:),'Displayname', ['u = ',num2str(u)]);
+% 
+% end  
+% legend;
+% title("Different u values - Eulers");
