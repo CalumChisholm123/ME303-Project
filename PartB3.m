@@ -38,8 +38,6 @@ x0 = [0; 0];
 % ==== FUNCTION DEFINITIONS ====
 
 [t, x] = solveIVP(f, [0, T], x0, dt, @rk4);
-r = x(2,:); %yaw rate
-v = x(1,:); %lat velocity 
 
 % Generic IVP solver
 function [t, y] = solveIVP(f, tspan, y0, h, solver)
@@ -141,11 +139,29 @@ for p = 1:length(u_values)
     title("Different u values - Euler");
 
 end  
+%============ Part B 3. ===========
+u = 100/3.6; %chaning U to 100km/hr
+tspan = [0 10]; %changing span to 5
 
-direction = cumtrapz(t, r);
+
+[t_track , x_track] = solveIVP(f, tspan, x0, dt, @rk4);
+v = x_track(1,:);
+r = x_track(2,:);
+
+direction = cumtrapz(t_track, r);
+% direction = direction - direction(end);
+
 x_dot = u * cos(direction) - v .* sin(direction);
-y_dot = u * sin(direction) + v .* sin(direction);
+y_dot = u * sin(direction) + v .* cos(direction);
 
-X = cumtrapz(t, x_dot);
-Y = cumtrapz(t, y_dot);
+X = cumtrapz(t_track, x_dot);
+Y = cumtrapz(t_track, y_dot);
 
+
+figure(5);
+plot(X,Y, 'LineWidth',2);
+xlabel ('X Position (m)');
+ylabel ('Y position (m)');
+title ('Vehicle Track at 100km/hr');
+grid on;
+axis equal;
