@@ -9,16 +9,15 @@ b = 1.33;          % m
 Caf = 25000;       % N/rad
 Car = 21000;       % N/rad
 Iz = 2420;         % kg·m^2
-u = 330 / 3.6;      % Convert from km/h to m/s
+u = 75 / 3.6;      % Convert from km/h to m/s
 delta = 0.1;       % Step steering input (rad)
 
 % Time setup
+tspan = [0,5];
 T = 5;             % Total simulation time (s)
 dt = 0.01; % Step Values 
 N = T/dt; % Number of Steps 
 t = linspace(0,T,N+1); % Time Vector 
-
-
 
 % Define A and B matrices (constant for constant u)
 A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
@@ -63,9 +62,59 @@ xlabel("Time");
 grid on;
 
 
-%lateralspeed = -13.0964*exp(-1.9745*t) + 24.4684*exp(-0.9839*t) - 11.3720;
-% yaw = -0.2496*exp(-1.9745*t) - 0.6962*exp(-0.9839*t) + 0.9457;
-% plot(t,lateralspeed)
-% title("Time vs Lateral Speed Sol")
-% plot(t,yaw)
-% title("Time vs Yaw Solution")
+%Euler Method (forward)
+function [t,x] = euler_1(ode, tspan, x0, dt)
+
+    t = tspan(1) : dt : tspan(2);
+    n = length(t);
+    x = zeros(length(x0), n);
+    x(:,1) = x0;
+
+    for i = 1:length(t) -1;
+        x(:, i+1) = x(:, i) + dt * ode(t(i), x(:, i));
+    end
+end
+
+% Calums Speed Changer 
+u_values = [20,50,75,100,200,300] / 3.6;
+
+figure(1);
+hold on;
+for i = 1:length(u_values)
+    u = u_values(i);
+
+    A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
+     (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
+    
+    B = [Caf/m; a*Caf/Iz];
+
+    f = @(t, x) A * x + B * delta;
+    [t, x] = solveIVP(f, [0, T], x0, dt, @rk4);
+
+    plot(t,x(1,:),'Displayname', ['u = ',num2str(u)]);
+
+end  
+legend;
+xlabel('Times (s)');
+yla
+title("Different u values - RK4");
+
+figure(2);
+hold on;
+for p = 1:length(u_values)
+    u = u_values(p);
+
+    A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
+     (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
+    
+    B = [Caf/m; a*Caf/Iz];
+
+    f = @(t, x) A * x + B * delta;
+
+    [t, x] = euler_1(f, tspan, x0, dt);
+
+    plot(t,x(1,:),'Displayname', ['u = ',num2str(u)]);
+
+end  
+legend;
+title("Different u values - Eulers");
