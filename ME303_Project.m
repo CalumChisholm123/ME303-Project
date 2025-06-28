@@ -1,6 +1,8 @@
-% RK4 method solver for vehicle dynamics - Grid independence study
 
-clear; clc;
+
+clear all; 
+close all;
+clc;
 
 % Parameters
 m = 1400;          % kg
@@ -13,6 +15,7 @@ u = 75 / 3.6;      % Convert from km/h to m/s
 delta = 0.1;       % Step steering input (rad)
 
 % Time setup
+tspan = [0,30];
 T = 5;             % Total simulation time (s)
 dt = 0.01; % Step Values 
 N = T/dt; % Number of Steps 
@@ -61,3 +64,79 @@ title("Time vs Yaw")
 ylabel("Lateral Velocity");
 xlabel("Time");
 grid on;
+
+
+%Euler Method (forward)
+function [t,x] = euler_1(ode, tspan, x0, dt)
+
+    t = tspan(1) : dt : tspan(2);
+    n = length(t);
+    x = zeros(length(x0), n);
+    x(:,1) = x0;
+
+    for i = 1:length(t) -1;
+        x(:, i+1) = x(:, i) + dt * ode(t(i), x(:, i));
+    end
+end
+
+% Calums Speed Changer 
+u_values = [20,50,75,100,200,300] / 3.6;
+
+%RK4 different Longitudinal Speeds
+for i = 1:length(u_values)
+    u = u_values(i);
+
+    A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
+     (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
+    
+    B = [Caf/m; a*Caf/Iz];
+
+    f = @(t, x) A * x + B * delta;
+    [t, x] = solveIVP(f, [0, T], x0, dt, @rk4);
+    figure(1);
+    hold on;
+    plot(t,x(1,:),'DisplayName', ['u = ',num2str(u), 'm/s']);
+    legend;
+    xlabel('Times (s)');
+    ylabel('Lateral Acceleration (m/s)')
+    title("Different u values - RK4");
+    figure(2);
+    hold on;
+    plot(t,x(2,:),'DisplayName', ['u = ',num2str(u), 'm/s']);
+    legend;
+    xlabel('Times (s)');
+    ylabel('Yaw Rate')
+    title("Different u values - RK4");
+
+end  
+
+%Eulers Longitudinal Speeds
+for p = 1:length(u_values)
+    u = u_values(p);
+
+    A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
+     (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
+    
+    B = [Caf/m; a*Caf/Iz];
+
+    f = @(t, x) A * x + B * delta;
+
+    [t, x] = euler_1(f, tspan, x0, dt);
+
+    figure(3);
+    hold on;
+    plot(t,x(1,:),'DisplayName', ['u = ',num2str(u), 'm/s']);
+    legend;
+    xlabel('Times (s)');
+    ylabel('Lateral Acceleration (m/s2)')
+    title("Different u values - Euler");
+    figure(4);
+    hold on;
+    plot(t,x(2,:),'DisplayName', ['u = ',num2str(u), 'm/s']);
+    legend;
+    xlabel('Times (s)');
+    ylabel('Yaw Rate')
+    title("Different u values - Euler");
+
+end  
+
