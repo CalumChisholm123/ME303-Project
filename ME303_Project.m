@@ -18,8 +18,8 @@ T = 5;             % Total simulation time (s)
 dt = [0.1,0.05,0.005,0.001];% Step Values 
 
 for i =1:length(dt)
-    stepval = dt(i)
-    N = T/dt; % Number of Steps 
+    stepval = dt(i);
+    N = T/stepval; % Number of Steps 
     t = linspace(0,T,N+1); % Time Vector 
     
     % Define A and B matrices (constant for constant u)
