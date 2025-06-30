@@ -21,7 +21,8 @@ x0 = [0; 0];
 tspan = [0,5];
 y0 = 1;
 x0 = [0 0];
-stepSizes = [0.1, 0.05, 0.01, 0.001];
+stepSizes = [0.1, 0.05, 0.01, 0.001,0.0001,0.00001,0.000001,0.0000001];
+% stepSizes = [0.1, 0.05, 0.01, 0.001];
 
 h_selected = 0.01; % Chosen based on grid study
 
@@ -58,6 +59,7 @@ h_selected = 0.01; % Chosen based on grid study
 times = tspan(1):1:tspan(2);
 actLatSpeed = -13.0964.*exp(-1.9745.*times) + 24.4684*exp(-0.9839.*times) - 11.3720;
 actYawRates = -0.2496.*exp(-1.9745.*times) - 0.6962.*exp(-0.9839.*times) + 0.9457;
+[t, solution] = euler_1(f, tspan, x0, 0.01);
 
 [L2_lat_speed, L2_yaw_rate] = grid_check_L2_norm(f, tspan, x0, stepSizes, actLatSpeed, actYawRates);
 
@@ -92,18 +94,21 @@ function [L2LatSpeedNorm, L2YawRateNorm] = grid_check_L2_norm(ODE, tspan, x0, st
     L2YawRateNorm = zeros(length(stepSizes));
     times = tspan(1):1:tspan(2);
 
-    for i = 1:length(stepSizes)
+    for i = 1:length(stepSizes) %iterate through each step size (h) value
         [t, x_dot] = euler_1(ODE, tspan, x0, stepSizes(i));
         latSpeedValues = zeros(0, length(times)); %vector to store length(times) values
         yawRateValues = zeros(0, length(times));
 
-        for j = 1:length(times)
+        for j = 1:length(times) %iterate through each time in the analytical solution to find the approximation value
             temp_indx = find(t == times(j));
+            % disp(['Temp_index ', num2str(temp_indx)]) %DISP FOR DEBUGGING
+            % disp(['time ', num2str(times(j))])
             latSpeedValues(j) = x_dot(1,temp_indx);
+            % disp(['Lat speed', num2str(latSpeedValues(j))])
             yawRateValues(j) = x_dot(2, temp_indx);
         end 
-        L2_norm_lat = sqrt(sum(actLatSpeed - latSpeedValues).^2);
-        L2_norm_yaw = sqrt(sum(actYawRates - yawRateValues).^2);
+        L2_norm_lat = sqrt(sum((actLatSpeed - latSpeedValues).^2));
+        L2_norm_yaw = sqrt(sum((actYawRates - yawRateValues).^2));
         
         L2LatSpeedNorm(i) = L2_norm_lat;
         L2YawRateNorm(i) = L2_norm_yaw;
@@ -111,14 +116,16 @@ function [L2LatSpeedNorm, L2YawRateNorm] = grid_check_L2_norm(ODE, tspan, x0, st
     
     figure (1)
     plot(log10(stepSizes), log10(L2LatSpeedNorm), 'o-');
-    title('Lateral speed grid refinement')
-    xlabel('log(step size)')
-    ylabel('log(error)')
+    title('Lateral Speed L2-error vs. Grid Size')
+    xlabel('log(grid size)')
+    ylabel('log(L2-norm error)')
+    grid on
 
     figure (2)
     plot(log10(stepSizes), log10(L2YawRateNorm), 'o-');
-    title('Yaw rate grid refinement');
-    xlabel('log(step size)')
-    ylabel('log(error)')
+    title('Yaw rate L2-error vs. Grid Size');
+    xlabel('log(grid size)')
+    ylabel('log(L2-norm error)')
+    grid on
 end
 
