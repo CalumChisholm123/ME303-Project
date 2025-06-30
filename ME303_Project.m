@@ -1,6 +1,9 @@
 % RK4 method solver for vehicle dynamics - Grid independence study
 
 clear;
+clc; 
+
+addpath('/')
 
 % Parameters
 m = 1400;          % kg
@@ -95,8 +98,8 @@ function [L2LatSpeedNorm, L2YawRateNorm] = grid_check_L2_norm(ODE, tspan, x0, st
             latSpeedValues(j) = x_dot(1,temp_indx)
             yawRateValues(j) = x_dot(2, temp_indx)
         end 
-        L2_norm_lat = sqrt(sum(actLatSpeed - latSpeedValues).^2);
-        L2_norm_yaw = sqrt(sum(actYawRates - yawRateValues).^2);
+        L2_norm_lat = sqrt(sum((actLatSpeed - latSpeedValues).^2));
+        L2_norm_yaw = sqrt(sum((actYawRates - yawRateValues).^2));
 
         L2LatSpeedNorm(i) = L2_norm_lat;
         L2YawRateNorm(i) = L2_norm_yaw;
