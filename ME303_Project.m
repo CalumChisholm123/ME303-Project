@@ -1,6 +1,7 @@
 % RK4 method solver for vehicle dynamics - Grid independence study
 
-clear; clc;
+clear all;
+clc
 
 % Parameters
 m = 1400;          % kg
@@ -15,44 +16,42 @@ delta = 0.1;       % Step steering input (rad)
 % Time setup
 tspan = [0,5];
 T = 5;             % Total simulation time (s)
-dt = [0.1,0.05,0.005,0.001];% Step Values 
+dt = 0.001;% Step Values 
 
-for i =1:length(dt)
-    stepval = dt(i);
-    N = T/stepval; % Number of Steps 
-    t = linspace(0,T,N+1); % Time Vector 
-    
-    % Define A and B matrices (constant for constant u)
-    A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
-         (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
-    
-    B = [Caf/m; a*Caf/Iz];
-    
-    % Define ODE function: dx/dt = A*x + B*delta
-    f = @(t, x) A * x + B * delta;
-    
-    % Initial condition: lateral velocity and yaw rate both zero
-    x0 = [0; 0];
-    
-    [t, x] = solveIVP(f, [0, T], x0, stepval, @rk4);
+N = T/dt; % Number of Steps 
+t = linspace(0,T,N+1); % Time Vector 
 
-    figure(1)
-    plot(t,x(2,:),"b", LineWidth=2);
-    hold on;
-    title("Time vs Yaw")
-    ylabel("Yaw Rate (degrees)");
-    xlabel("Time");
-    grid on;
-    
-    figure(2)
-    plot(t,x(1,:),"b", LineWidth=2);
-    hold on;
-    title("Time vs Lateral Velocity")
-    ylabel("Lateral Velocity");
-    xlabel("Time");
-    grid on;
-end
+% Define A and B matrices (constant for constant u)
+A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
+     (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
 
+B = [Caf/m; a*Caf/Iz];
+
+% Define ODE function: dx/dt = A*x + B*delta
+f = @(t, x) A * x + B * delta;
+
+% Initial condition: lateral velocity and yaw rate both zero
+x0 = [0; 0];
+
+[t, x] = solveIVP(f, [0, T], x0, dt, @rk4);
+
+% figure(1)
+% plot(t,x(2,:),"b", LineWidth=2);
+% hold on;
+% title("Time vs Yaw - RK4")
+% ylabel("Yaw Rate (degrees)");
+% xlabel("Time");
+% grid on;
+% 
+% figure(2)
+% plot(t,x(1,:),"b", LineWidth=2);
+% hold on;
+% title("Time vs Lateral Velocity - RK4")
+% ylabel("Lateral Velocity (m/s)");
+% xlabel("Time");
+% grid on;
+% 
+% 
 
 % ==== FUNCTION DEFINITIONS ====
 
@@ -75,8 +74,6 @@ function ynew = rk4(f, t, y, h)
     ynew = y + (h / 6) * (k1 + 2*k2 + 2*k3 + k4);
 end
 
-
-
 %Euler Method (forward)
 function [t,x] = euler_1(ode, tspan, x0, dt)
 
@@ -90,8 +87,43 @@ function [t,x] = euler_1(ode, tspan, x0, dt)
     end
 end
 
+
+u_values = (10:0.001:300);
+
+for i = 1:length(u_values)
+    u = u_values(i);
+    
+    A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
+     (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
+    
+    B = [Caf/m; a*Caf/Iz];
+
+    f = @(t, x) A * x + B * delta;
+    [t, x] = solveIVP(f, [0, T], x0, dt, @rk4);
+
+
+    lambda = eig(A);
+    disp(lambda)
+
+    if any(real(lambda) >= 0)
+        u = u*3.6;
+      
+        disp('UNSTABLE: At least one eigenvalue has a non-negative real part.');
+        
+        break;
+
+   end
+
+end
+disp(u);
+
+
+
+
+
+
 % Calums Speed Changer 
-u_values = [20,50,75,100,200,300] / 3.6;
+% u_values = [20,50,75,100,200,300] / 3.6;
 % 
 % figure(1);
 % hold on;
@@ -111,9 +143,10 @@ u_values = [20,50,75,100,200,300] / 3.6;
 % end  
 % legend;
 % xlabel('Times (s)');
-% yla
-% title("Different u values - RK4");
-% 
+% ylabel('Lateral Velocity (m/s)')
+% title("Lateral Velocity Different u values - RK4");
+% clear all;
+
 % figure(2);
 % hold on;
 % for p = 1:length(u_values)
