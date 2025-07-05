@@ -54,29 +54,29 @@
 % hold off; % Release the plot hold
 
 % 
-% clear all;
-% clc
-% f = @(x,y) exp(x);  % Also fixed function definition syntax
-% x0 = 0;
-% y0 = 1;
-% xfinal = 5;
-% 
-% h = 0.05;
-% 
-% N = (xfinal -x0)/h;
-% 
-% x(1) = x0;
-% y(1) = y0;
-% 
-% for n = 1:N
-%     y(n+1) = y(n) + h*f(x(n),y(n));
-%     x(n+1) = x(n) + h;
-% end
-% 
-% figure(1)
-% grid on;
-% plot(x,y)
-% 
-% title('Numerical Solution of IVP using Euler Method, Step Size 0.05');
-% xlabel("X Values")
-% ylabel("Y Values")    
+clear all;
+clc
+f = @(x,y) exp(x);  % Also fixed function definition syntax
+x0 = 0;
+y0 = 1;
+xfinal = 5;
+
+h = 0.05;
+
+N = (xfinal -x0)/h;
+
+x(1) = x0;
+y(1) = y0;
+
+for n = 1:N
+    y(n+1) = y(n) + h*f(x(n),y(n));
+    x(n+1) = x(n) + h;
+end
+
+figure(1)
+grid on;
+plot(x,y)
+
+title('Numerical Solution of IVP using Euler Method, Step Size 0.05');
+xlabel("X Values")
+ylabel("Y Values")    

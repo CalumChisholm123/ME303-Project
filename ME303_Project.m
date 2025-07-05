@@ -4,9 +4,9 @@ clear all;
 clc
 
 % Parameters
-m = 1315;          % kg
-a = 1.36125;          % distance of CM to front axle 
-b = 1.11375;          % distance of CM to rear axle 
+m = 1400;          % kg
+a = 1.14;          % distance of CM to front axle 
+b = 1.33;          % distance of CM to rear axle 
 Caf = 25000;       % N/rad
 Car = 21000;       % N/rad
 Iz = 2420;         % kg·m^2
@@ -87,7 +87,7 @@ function [t,x] = euler_1(ode, tspan, x0, dt)
 end
 
 
-u_values = (10:0.001:300);
+u_values = (1:0.0001:5000);
 
 for i = 1:length(u_values)
     u = u_values(i);
@@ -106,36 +106,13 @@ for i = 1:length(u_values)
         disp('UNSTABLE: At least one eigenvalue has a non-negative real part.');
         
         break;
-
-   end
-
-end
-
-
-
-% Alternate Method 
-% Calculate the term in the denominator related to stability
-stability_factor = Car * b - Caf * a;
-
-% Check for neutral steer condition (division by zero)
-if stability_factor == 0
-    disp('The bicycle is neutrally steered; critical velocity is theoretically infinite.');
-    u_crit = inf;
-else
-    % Calculate the term inside the square root
-    radicand = (-Caf * Car * (a + b)^2) / (m * stability_factor);
-
-    % Check if the bicycle is understeering or oversteering
-    if radicand >= 0
-        % Oversteering case: Calculate critical velocity
-        u_crit = sqrt(radicand);
-        fprintf('The critical velocity is: %.2f km/h\n', u_crit * 3.6);
-    else
-        % Understeering case: No real critical velocity
-        disp('The bicycle is understeering and stable at all speeds. Critical velocity is not real.');
-        u_crit = NaN; % Assign Not-a-Number for non-real results
     end
+    
+
+   
+
 end
+
 
 
 
