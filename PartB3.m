@@ -39,6 +39,7 @@ x0 = [0; 0];
 
 [t, x] = solveIVP(f, [0, T], x0, dt, @rk4);
 
+
 % Generic IVP solver
 function [t, y] = solveIVP(f, tspan, y0, h, solver)
     t = tspan(1):h:tspan(2);
@@ -47,7 +48,6 @@ function [t, y] = solveIVP(f, tspan, y0, h, solver)
     for n = 1:length(t) - 1
         y(:,n+1) = solver(f, t(n), y(:,n), h);
     end
-    
 end
 
 % Runge-Kutta 4th order method
@@ -139,29 +139,108 @@ for p = 1:length(u_values)
     title("Different u values - Euler");
 
 end  
+close all;
 %============ Part B 3. ===========
-u = 100; %chaning U to 100km/hr
+u = 100/3.6; %chaning U to 100km/hr
 tspan = [0 5]; %changing span to 5
+L = a+b;
+u_values = [20, 40, 60, 80, 100, 200] / 3.6;
 
+yaw_rate_targets = 0.1:0.1:0.5; % yaw rates to test (rad/s)
 
-[t_track , x_track] = solveIVP(f, tspan, x0, dt, @rk4);
-v = x_track(1,:);
-r = x_track(2,:);
+% Initial conditions: [v0; r0]
+x0 = [0; 0];
 
-direction = cumtrapz(t_track, r);
+% Simulation parameters
+dt = 0.01; % time step for RK4 integration
+T_total = 200; % total simulation time in seconds (adjust to get desired distance)
 
-x_dot = u * cos(direction) - (v + (r*a)) .* sin(direction);
-y_dot = u * sin(direction) + (v + (r*a)) .* cos(direction);
+% Plot setup
+figure;
+hold on;
 
-X = cumtrapz(t_track, x_dot);
-Y = cumtrapz(t_track, y_dot);
+for r_target = yaw_rate_targets
+    % Compute required steering angle delta for desired steady-state yaw rate
+    delta = r_target * Iz / (a * Caf);
 
+    % System matrices for linear bicycle model
+    A = [-(2*Caf + 2*Car)/(m*u), (-2*a*Caf + 2*b*Car)/(m*u) - u;
+         (-2*a*Caf + 2*b*Car)/(Iz*u), -(2*a^2*Caf + 2*b^2*Car)/(Iz*u)];
 
-figure(5);
-plot(X,Y, 'LineWidth',2);
-xlabel ('X Position (m)');
-ylabel ('Y position (m)');
-title ('Vehicle Track at 100km/hr');
+    B = [2*Caf/m;
+         2*a*Caf/Iz];
+
+    % Define system dynamics
+    f = @(t, x) A * x + B * delta;
+
+    % Solve using RK4 over fixed total time
+    [t_track, x_track] = solveIVP(f, [0, T_total], x0, dt, @rk4);
+
+    % Extract states
+    v = x_track(1,:);
+    r = x_track(2,:);
+
+    % Integrate yaw angle φ using left-point Riemann sum
+    phi = zeros(1, length(t_track));
+    for i = 2:length(t_track)
+        phi(i) = phi(i-1) + r(i-1) * (t_track(i) - t_track(i-1));
+    end
+
+    % Ground velocities
+    x_dot = u * cos(phi) - (v + a*r) .* sin(phi);
+    y_dot = u * sin(phi) + (v + a*r) .* cos(phi);
+
+    % Integrate position using left-point Riemann sum
+    X = zeros(1, length(t_track));
+    Y = zeros(1, length(t_track));
+    for i = 2:length(t_track)
+        X(i) = X(i-1) + x_dot(i-1) * (t_track(i) - t_track(i-1));
+        Y(i) = Y(i-1) + y_dot(i-1) * (t_track(i) - t_track(i-1));
+    end
+
+    % Plot result
+    plot(X, Y, 'LineWidth', 2, 'DisplayName', sprintf('%.1f rad/s', r_target));
+end
+
+xlabel('X (m)');
+ylabel('Y (m)');
+title('Handling Behaviour of Car with Step Steering Experiment');
+legend;
 grid on;
 axis equal;
 
+
+r_ideal_list = [];
+r_actual_list = [];
+
+for i = 1:length(u_values)
+    u = u_values(i);
+
+    % State-space matrices
+    A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
+         (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
+    B = [Caf/m; a*Caf/Iz];
+
+    f = @(t, x) A * x + B * delta;
+    x0 = [0; 0];
+
+    T = 10;
+    dt = 0.01;
+    [t, x] = solveIVP(f, [0 T], x0, dt, @rk4);
+
+    r_ideal = (u * delta) / L;
+    r_actual = mean(x(2,end-100:end)); % average of last ~1s to get steady-state
+
+    r_ideal_list(end+1) = r_ideal;
+    r_actual_list(end+1) = r_actual;
+end
+
+% --- Plotting ---
+figure;
+plot(u_values*3.6, r_ideal_list, 'k--', 'LineWidth', 2); hold on;
+plot(u_values*3.6, r_actual_list, 'ro-', 'LineWidth', 2);
+legend('Ideal Yaw Rate', 'Actual Yaw Rate');
+xlabel('Speed (km/h)');
+ylabel('Yaw Rate (rad/s)');
+title('Ideal vs Actual Yaw Rate at Different Speeds');
+grid on;
