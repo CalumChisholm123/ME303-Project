@@ -5,8 +5,8 @@ clc
 
 % Parameters
 m = 1400;          % kg
-a = 1.14;          % distance of CM to front axle 
-b = 1.33;          % distance of CM to rear axle 
+a = 1.1859;          % distance of CM to front axle 
+b = 1.28;          % distance of CM to rear axle 
 Caf = 25000;       % N/rad
 Car = 21000;       % N/rad
 Iz = 2420;         % kg·m^2
@@ -87,33 +87,49 @@ function [t,x] = euler_1(ode, tspan, x0, dt)
 end
 
 
-u_values = (1:0.0001:5000);
+% u_values = (1:0.0001:5000);
+% 
+% for i = 1:length(u_values)
+%     u = u_values(i);
+% 
+%     A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
+%      (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
+% 
+% 
+%     lambda = eig(A);
+%     disp(lambda)
+% 
+%     if any(real(lambda) >= 0)
+%         u = u*3.6;
+%         disp(u)
+% 
+%         disp('UNSTABLE: At least one eigenvalue has a non-negative real part.');
+% 
+%         break;
+%     end
+% 
+% end
 
-for i = 1:length(u_values)
-    u = u_values(i);
-    
-    A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
-     (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
-    
+stability_factor = Car * b - Caf * a;
 
-    lambda = eig(A);
-    disp(lambda)
+if stability_factor == 0
+    disp('The bicycle is neutrally steered; critical velocity is theoretically infinite.');
+    u_crit = inf;
+else
+    % Calculate the term inside the square root
+    radicand = (-Caf * Car * (a + b)^2) / (m * stability_factor);
 
-    if any(real(lambda) >= 0)
-        u = u*3.6;
-        disp(u)
-      
-        disp('UNSTABLE: At least one eigenvalue has a non-negative real part.');
-        
-        break;
+    % Check if the bicycle is understeering or oversteering
+    if radicand >= 0
+        % Oversteering case: Calculate critical velocity
+        u_crit = sqrt(radicand);
+        fprintf('The critical velocity is: %.2f m/s\n', u_crit);
+    else
+        % Understeering case: No real critical velocity
+        disp('The bicycle is understeering and stable at all speeds. Critical velocity is not real.');
+        u_crit = NaN; % Assign Not-a-Number for non-real results
     end
-    
-
-   
-
 end
-
-
 
 
 
