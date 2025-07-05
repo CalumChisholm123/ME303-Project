@@ -86,50 +86,50 @@ function [t,x] = euler_1(ode, tspan, x0, dt)
     end
 end
 
-
+% 
 % u_values = (1:0.0001:5000);
 % 
 % for i = 1:length(u_values)
 %     u = u_values(i);
-% 
-%     A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
-%      (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
-% 
-% 
-%     lambda = eig(A);
-%     disp(lambda)
-% 
-%     if any(real(lambda) >= 0)
-%         u = u*3.6;
-%         disp(u)
-% 
-%         disp('UNSTABLE: At least one eigenvalue has a non-negative real part.');
-% 
-%         break;
-%     end
-% 
+
+u = 63.35;
+A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
+     (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
+
+lambda = eig(A);
+disp(lambda)
+
+    if any(real(lambda) >= 0)
+        u = u*3.6;
+        disp(u)
+
+        disp('UNSTABLE: At least one eigenvalue has a non-negative real part.');
+
+        % break;
+    end
+
 % end
 
-stability_factor = Car * b - Caf * a;
-
-if stability_factor == 0
-    disp('The bicycle is neutrally steered; critical velocity is theoretically infinite.');
-    u_crit = inf;
-else
-    % Calculate the term inside the square root
-    radicand = (-Caf * Car * (a + b)^2) / (m * stability_factor);
-
-    % Check if the bicycle is understeering or oversteering
-    if radicand >= 0
-        % Oversteering case: Calculate critical velocity
-        u_crit = sqrt(radicand);
-        fprintf('The critical velocity is: %.2f m/s\n', u_crit);
-    else
-        % Understeering case: No real critical velocity
-        disp('The bicycle is understeering and stable at all speeds. Critical velocity is not real.');
-        u_crit = NaN; % Assign Not-a-Number for non-real results
-    end
-end
+% stability_factor = Car * b - Caf * a;
+% 
+% if stability_factor == 0
+%     disp('The bicycle is neutrally steered; critical velocity is theoretically infinite.');
+%     u_crit = inf;
+% else
+%     % Calculate the term inside the square root
+%     radicand = (-Caf * Car * (a + b)^2) / (m * stability_factor);
+% 
+%     % Check if the bicycle is understeering or oversteering
+%     if radicand >= 0
+%         % Oversteering case: Calculate critical velocity
+%         u_crit = sqrt(radicand);
+%         fprintf('The critical velocity is: %.2f m/s\n', u_crit);
+%     else
+%         % Understeering case: No real critical velocity
+%         disp('The bicycle is understeering and stable at all speeds. Critical velocity is not real.');
+%         u_crit = NaN; % Assign Not-a-Number for non-real results
+%     end
+% end
 
 
 
