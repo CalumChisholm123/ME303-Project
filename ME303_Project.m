@@ -4,13 +4,12 @@ clear all;
 clc
 
 % Parameters
-m = 1400;          % kg
-a = 1.14;          % m
-b = 1.33;          % m
+m = 1315;          % kg
+a = 1.36125;          % distance of CM to front axle 
+b = 1.11375;          % distance of CM to rear axle 
 Caf = 25000;       % N/rad
 Car = 21000;       % N/rad
 Iz = 2420;         % kg·m^2
-u = 75 / 3.6;      % Convert from km/h to m/s
 delta = 0.1;       % Step steering input (rad)
 
 % Time setup
@@ -22,8 +21,8 @@ N = T/dt; % Number of Steps
 t = linspace(0,T,N+1); % Time Vector 
 
 % Define A and B matrices (constant for constant u)
-A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
-     (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
+%A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
+%     (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
 
 B = [Caf/m; a*Caf/Iz];
 
@@ -33,7 +32,7 @@ f = @(t, x) A * x + B * delta;
 % Initial condition: lateral velocity and yaw rate both zero
 x0 = [0; 0];
 
-[t, x] = solveIVP(f, [0, T], x0, dt, @rk4);
+%[t, x] = solveIVP(f, [0, T], x0, dt, @rk4);
 
 % figure(1)
 % plot(t,x(2,:),"b", LineWidth=2);
@@ -82,7 +81,7 @@ function [t,x] = euler_1(ode, tspan, x0, dt)
     x = zeros(length(x0), n);
     x(:,1) = x0;
 
-    for i = 1:length(t) -1;
+    for i = 1:length(t) -1
         x(:, i+1) = x(:, i) + dt * ode(t(i), x(:, i));
     end
 end
@@ -96,17 +95,13 @@ for i = 1:length(u_values)
     A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
      (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
     
-    B = [Caf/m; a*Caf/Iz];
-
-    f = @(t, x) A * x + B * delta;
-    [t, x] = solveIVP(f, [0, T], x0, dt, @rk4);
-
 
     lambda = eig(A);
     disp(lambda)
 
     if any(real(lambda) >= 0)
         u = u*3.6;
+        disp(u)
       
         disp('UNSTABLE: At least one eigenvalue has a non-negative real part.');
         
@@ -115,9 +110,32 @@ for i = 1:length(u_values)
    end
 
 end
-disp(u);
 
 
+
+% Alternate Method 
+% Calculate the term in the denominator related to stability
+stability_factor = Car * b - Caf * a;
+
+% Check for neutral steer condition (division by zero)
+if stability_factor == 0
+    disp('The bicycle is neutrally steered; critical velocity is theoretically infinite.');
+    u_crit = inf;
+else
+    % Calculate the term inside the square root
+    radicand = (-Caf * Car * (a + b)^2) / (m * stability_factor);
+
+    % Check if the bicycle is understeering or oversteering
+    if radicand >= 0
+        % Oversteering case: Calculate critical velocity
+        u_crit = sqrt(radicand);
+        fprintf('The critical velocity is: %.2f km/h\n', u_crit * 3.6);
+    else
+        % Understeering case: No real critical velocity
+        disp('The bicycle is understeering and stable at all speeds. Critical velocity is not real.');
+        u_crit = NaN; % Assign Not-a-Number for non-real results
+    end
+end
 
 
 
