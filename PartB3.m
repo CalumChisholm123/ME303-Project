@@ -146,59 +146,48 @@ tspan = [0 5]; %changing span to 5
 L = a+b;
 u_values = [20, 40, 60, 80, 100, 200] / 3.6;
 
-yaw_rate_targets = 0.1:0.1:0.5; % yaw rates to test (rad/s)
+yaw_rate = 0.1:0.1:0.5;
 
-% Initial conditions: [v0; r0]
 x0 = [0; 0];
 
-% Simulation parameters
-dt = 0.01; % time step for RK4 integration
-T_total = 200; % total simulation time in seconds (adjust to get desired distance)
 
-% Plot setup
+dt = 0.01; 
+T_total = 100;%time that car is moving
+
+
 figure;
 hold on;
 
-for r_target = yaw_rate_targets
-    % Compute required steering angle delta for desired steady-state yaw rate
-    delta = r_target * Iz / (a * Caf);
+for r_target = yaw_rate
 
-    % System matrices for linear bicycle model
+    delta = r_target * Iz / (a * Caf);
     A = [-(2*Caf + 2*Car)/(m*u), (-2*a*Caf + 2*b*Car)/(m*u) - u;
          (-2*a*Caf + 2*b*Car)/(Iz*u), -(2*a^2*Caf + 2*b^2*Car)/(Iz*u)];
 
     B = [2*Caf/m;
          2*a*Caf/Iz];
 
-    % Define system dynamics
     f = @(t, x) A * x + B * delta;
-
-    % Solve using RK4 over fixed total time
     [t_track, x_track] = solveIVP(f, [0, T_total], x0, dt, @rk4);
 
-    % Extract states
     v = x_track(1,:);
     r = x_track(2,:);
 
-    % Integrate yaw angle φ using left-point Riemann sum
-    phi = zeros(1, length(t_track));
+    phi = zeros(1, length(t_track));%Riemann Sum
     for i = 2:length(t_track)
         phi(i) = phi(i-1) + r(i-1) * (t_track(i) - t_track(i-1));
     end
 
-    % Ground velocities
     x_dot = u * cos(phi) - (v + a*r) .* sin(phi);
     y_dot = u * sin(phi) + (v + a*r) .* cos(phi);
 
-    % Integrate position using left-point Riemann sum
-    X = zeros(1, length(t_track));
+    X = zeros(1, length(t_track));%Integration
     Y = zeros(1, length(t_track));
     for i = 2:length(t_track)
         X(i) = X(i-1) + x_dot(i-1) * (t_track(i) - t_track(i-1));
         Y(i) = Y(i-1) + y_dot(i-1) * (t_track(i) - t_track(i-1));
     end
 
-    % Plot result
     plot(X, Y, 'LineWidth', 2, 'DisplayName', sprintf('%.1f rad/s', r_target));
 end
 
@@ -210,13 +199,12 @@ grid on;
 axis equal;
 
 
-r_ideal_list = [];
-r_actual_list = [];
+ideal_list = [];
+actual_list = [];
 
 for i = 1:length(u_values)
     u = u_values(i);
 
-    % State-space matrices
     A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
          (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
     B = [Caf/m; a*Caf/Iz];
@@ -228,17 +216,16 @@ for i = 1:length(u_values)
     dt = 0.01;
     [t, x] = solveIVP(f, [0 T], x0, dt, @rk4);
 
-    r_ideal = (u * delta) / L;
-    r_actual = mean(x(2,end-100:end)); % average of last ~1s to get steady-state
+    ideal = (u * delta) / L;
+    actual = mean(x(2,end-100:end)); % average of last ~1s to get steady-state
 
-    r_ideal_list(end+1) = r_ideal;
-    r_actual_list(end+1) = r_actual;
+    ideal_list(end+1) = ideal;
+    actual_list(end+1) = actual;
 end
 
-% --- Plotting ---
 figure;
-plot(u_values*3.6, r_ideal_list, 'k--', 'LineWidth', 2); hold on;
-plot(u_values*3.6, r_actual_list, 'ro-', 'LineWidth', 2);
+plot(u_values*3.6, ideal_list, 'k--', 'LineWidth', 2); hold on;
+plot(u_values*3.6, actual_list, 'ro-', 'LineWidth', 2);
 legend('Ideal Yaw Rate', 'Actual Yaw Rate');
 xlabel('Speed (km/h)');
 ylabel('Yaw Rate (rad/s)');
