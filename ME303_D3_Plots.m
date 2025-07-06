@@ -16,7 +16,7 @@ Iz = 2420;         % kg·m^2
 u = 75 / 3.6;      % Convert from km/h to m/s
 delta = 0.1;       % Step steering input (rad)
 
-m_list = 650:150:m;
+m_list = 700:100:m;
 
 
 % Time setup
@@ -49,7 +49,7 @@ for n = 1:length(m_list)
 
     [t, x] = solveIVP(f, [0,5], x0, h, @rk4);
     
-    plot(t, x(1,:), 'LineWidth', 2, 'Color', colors(n,:));
+    plot(t, x(2,:), 'LineWidth', 2, 'Color', colors(n,:));
     
     % --- Legend ---
     % Create a descriptive entry for the legend
@@ -61,9 +61,9 @@ hold off; % Release the plot hold
 grid on;  % Add a grid for better readability
 
 % Add labels and a title
-title('Effect of Mass on Vehicle Lateral Speed', 'FontSize', 14);
+title('Effect of Mass on Vehicle Yaw Rate', 'FontSize', 12);
 xlabel('Time (s)', 'FontSize', 12);
-ylabel('Lateral Speed (m/s)', 'FontSize', 12);
+ylabel('Yaw Rate (m/s)', 'FontSize', 12);
 
 % Add the legend to the plot
 legend(legend_entries, 'Location', 'SouthEast');
