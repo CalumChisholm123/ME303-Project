@@ -227,56 +227,63 @@ grid on;
 axis equal;
 
 %% ==================== Section C2 ====================
-clear all; 
+
+clear all;
 close all;
 clc;
 
-m = 1400;          % kg
+% Vehicle Parameters
 a = 1.14;          % m
 b = 1.33;          % m
 Caf = 5000;       % N/rad
 Car = 5000;       % N/rad
 Iz = 2420;         % kg·m^2
-u = 100 / 3.6;      % Convert from km/h to m/s
+u = 100 / 3.6;     % Convert from km/h to m/s
 delta = 0.1;       % Step steering input (rad)
+m_list = 700:100:1400; % List of masses to simulate (kg)
 
 % Time setup
-tspan = [0,30];
-T = 60;             % Total simulation time (s)
-dt = 0.01; % Step Values 
-N = T/dt; % Number of Steps 
-t = linspace(0,T,N+1); % Time Vector 
+tspan = [0, 60];   % Total simulation time (s)
+dt = 0.01;         % Time step
+t = tspan(1):dt:tspan(2); % Time vector
 
-A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
-    (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
-B = [Caf/m; a*Caf/Iz];
+% Create figure and hold for overlaid plots
+figure(1);
+hold on;
 
-f = @(t, x) A * x + B * delta;
-x0 = [0; 0];
+% Loop through each mass in the list
+for i = 1:length(m_list)
+    m = m_list(i); % Current mass
 
+    A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
+         (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
+    B = [Caf/m; a*Caf/Iz];
 
-[t_track, x_track] = solveIVP(f, [0, T], x0, dt, @rk4);
+    f = @(t, x) A * x + B * delta;
 
-% Extract lateral velocity and yaw rate
-v = x_track(1,:);  % lateral velocity (m/s)
-r = x_track(2,:);  % yaw rate (rad/s)
+    x0 = [0; 0];
 
-% Integrate yaw angle over time to get heading direction
-psi = cumtrapz(t, r);  % heading angle (rad)
+    [t_sol, x_sol] = ode45(f, t, x0);
 
-% Compute global velocities in X and Y directions
-x_dot = u * cos(psi) - v .* sin(psi);
-y_dot = u * sin(psi) + v .* cos(psi);
+    v = x_sol(:, 1);  % Lateral velocity (m/s)
+    r = x_sol(:, 2);  % Yaw rate (rad/s)
 
-% Integrate to get global positions
-X = cumtrapz(t, x_dot);
-Y = cumtrapz(t, y_dot);
+    psi = cumtrapz(t_sol, r);
 
-% Plot vehicle trajectory (X vs Y)
-figure(9);
-plot(X, Y);
+    x_dot = u * cos(psi) - v .* sin(psi);
+    y_dot = u * sin(psi) + v .* cos(psi);
+
+    X = cumtrapz(t_sol, x_dot);
+    Y = cumtrapz(t_sol, y_dot);
+
+    plot(X, Y, 'DisplayName', sprintf('Mass = %d kg', m));
+end
+
+% Finalize the plot
+hold off;
 xlabel('X Position (m)');
 ylabel('Y Position (m)');
-title('Vehicle Track - Normal Conditions - Normal Tires');
+title('Vehicle Track for Different Masses');
 grid on;
 axis equal;
+legend('Location', 'northwest');
