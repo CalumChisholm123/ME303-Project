@@ -228,6 +228,6 @@ plot(u_values*3.6, ideal_list, 'k--', 'LineWidth', 2); hold on;
 plot(u_values*3.6, actual_list, 'ro-', 'LineWidth', 2);
 legend('Ideal Yaw Rate', 'Actual Yaw Rate');
 xlabel('Speed (km/h)');
-ylabel('Yaw Rate (rad/s)');
+ylabel('Yaw Rate (rad)');
 title('Ideal vs Actual Yaw Rate at Different Speeds');
 grid on;
