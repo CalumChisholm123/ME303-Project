@@ -158,10 +158,10 @@ delta = 0.1;
 figure;
 hold on;
 
-for r_target = yaw_rate
 
-    A = [-(2*Caf + 2*Car)/(m*u), (-2*a*Caf + 2*b*Car)/(m*u) - u;
-         (-2*a*Caf + 2*b*Car)/(Iz*u), -(2*a^2*Caf + 2*b^2*Car)/(Iz*u)];
+
+    A = [-(2*Caf + 2*Car)/(m*u), (2*a*Caf + b*Car)/(m*u) - u;
+         (2*a*Caf + 2*b*Car)/(Iz*u), -(2*a^2*Caf + 2*b^2*Car)/(Iz*u)];
 
     B = [2*Caf/m;
          2*a*Caf/Iz];
@@ -172,13 +172,16 @@ for r_target = yaw_rate
     v = x_track(1,:);
     r = x_track(2,:);
 
-    phi = zeros(1, length(t_track));%Riemann Sum
+
+    % psy = cumtrapz(t_track,r);
+
+    psy = zeros(1, length(t_track));%Riemann Sum
     for i = 2:length(t_track)
-        phi(i) = phi(i-1) + r(i-1) * (t_track(i) - t_track(i-1));
+        psy(i) = psy(i-1) + r(i-1) * (t_track(i) - t_track(i-1));
     end
 
-    x_dot = u * cos(phi) - (v + a*r) .* sin(phi);
-    y_dot = u * sin(phi) + (v + a*r) .* cos(phi);
+    x_dot = u * cos(psy) - (v + a*r) .* sin(psy);
+    y_dot = u * sin(psy) + (v + a*r) .* cos(psy);
 
     X = zeros(1, length(t_track));%Integration
     Y = zeros(1, length(t_track));
@@ -187,14 +190,13 @@ for r_target = yaw_rate
         Y(i) = Y(i-1) + y_dot(i-1) * (t_track(i) - t_track(i-1));
     end
 
-    
-end
+  
 plot(X, Y, 'LineWidth', 2);
 xlabel('X (m)');
 ylabel('Y (m)');
 title('Handling Behaviour of Car with Step Steering Experiment');
 grid on;
-axis equal;
+
 
 
 ideal_list = [];
