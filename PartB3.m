@@ -153,14 +153,13 @@ x0 = [0; 0];
 
 dt = 0.01; 
 T_total = 100;%time that car is moving
-
+delta = 0.1;
 
 figure;
 hold on;
 
 for r_target = yaw_rate
 
-    delta = r_target * Iz / (a * Caf);
     A = [-(2*Caf + 2*Car)/(m*u), (-2*a*Caf + 2*b*Car)/(m*u) - u;
          (-2*a*Caf + 2*b*Car)/(Iz*u), -(2*a^2*Caf + 2*b^2*Car)/(Iz*u)];
 
@@ -188,13 +187,12 @@ for r_target = yaw_rate
         Y(i) = Y(i-1) + y_dot(i-1) * (t_track(i) - t_track(i-1));
     end
 
-    plot(X, Y, 'LineWidth', 2, 'DisplayName', sprintf('%.1f rad/s', r_target));
+    
 end
-
+plot(X, Y, 'LineWidth', 2);
 xlabel('X (m)');
 ylabel('Y (m)');
 title('Handling Behaviour of Car with Step Steering Experiment');
-legend;
 grid on;
 axis equal;
 
