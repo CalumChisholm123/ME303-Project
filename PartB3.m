@@ -151,44 +151,43 @@ yaw_rate = 0.1:0.1:0.5;
 x0 = [0; 0];
 
 
-dt = 0.01; 
-T_total = 100;%time that car is moving
-delta = 0.1;
+dt = 0.001; 
+T_total = 50;%time that car is moving
 
 figure;
 hold on;
 
 
 
-    A = [-(2*Caf + 2*Car)/(m*u), (2*a*Caf + b*Car)/(m*u) - u;
-         (2*a*Caf + 2*b*Car)/(Iz*u), -(2*a^2*Caf + 2*b^2*Car)/(Iz*u)];
+A = [-(2*Caf + 2*Car)/(m*u), (2*a*Caf + b*Car)/(m*u) - u;
+    (2*a*Caf + 2*b*Car)/(Iz*u), -(2*a^2*Caf + 2*b^2*Car)/(Iz*u)];
 
-    B = [2*Caf/m;
-         2*a*Caf/Iz];
+B = [2*Caf/m;
+    2*a*Caf/Iz];
 
-    f = @(t, x) A * x + B * delta;
-    [t_track, x_track] = solveIVP(f, [0, T_total], x0, dt, @rk4);
+f = @(t, x) A * x + B * delta;
+[t_track, x_track] = solveIVP(f, [0, T_total], x0, dt, @rk4);
 
-    v = x_track(1,:);
-    r = x_track(2,:);
+v = x_track(1,:);
+r = x_track(2,:);
 
 
-    % psy = cumtrapz(t_track,r);
+% psy = cumtrapz(t_track,r);
 
-    psy = zeros(1, length(t_track));%Riemann Sum
-    for i = 2:length(t_track)
-        psy(i) = psy(i-1) + r(i-1) * (t_track(i) - t_track(i-1));
-    end
+psy = zeros(1, length(t_track));%Riemann Sum
+for i = 2:length(t_track)
+    psy(i) = psy(i-1) + r(i-1) * (t_track(i) - t_track(i-1));
+end
 
-    x_dot = u * cos(psy) - (v + a*r) .* sin(psy);
-    y_dot = u * sin(psy) + (v + a*r) .* cos(psy);
+x_dot = u * cos(psy) - (v + a*r) .* sin(psy);
+y_dot = u * sin(psy) + (v + a*r) .* cos(psy);
 
-    X = zeros(1, length(t_track));%Integration
-    Y = zeros(1, length(t_track));
-    for i = 2:length(t_track)
-        X(i) = X(i-1) + x_dot(i-1) * (t_track(i) - t_track(i-1));
-        Y(i) = Y(i-1) + y_dot(i-1) * (t_track(i) - t_track(i-1));
-    end
+X = zeros(1, length(t_track));%Integration
+Y = zeros(1, length(t_track));
+for i = 2:length(t_track)
+    X(i) = X(i-1) + x_dot(i-1) * (t_track(i) - t_track(i-1));
+    Y(i) = Y(i-1) + y_dot(i-1) * (t_track(i) - t_track(i-1));
+end
 
   
 plot(X, Y, 'LineWidth', 2);
