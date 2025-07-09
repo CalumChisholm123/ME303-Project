@@ -244,7 +244,7 @@ m_list = 700:100:1400; % List of masses to simulate (kg)
 
 % Time setup
 tspan = [0, 60];   % Total simulation time (s)
-dt = 0.01;         % Time step
+dt = 0.001;         % Time step
 t = tspan(1):dt:tspan(2); % Time vector
 
 % Create figure and hold for overlaid plots
