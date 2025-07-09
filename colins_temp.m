@@ -38,6 +38,62 @@ x0 = [0; 0];
 [t, x] = solveIVP(f, [0, T], x0, dt, @rk4);
 
 
+
+%============ Part B 3. ===========
+u = 75/3.6; %changing from km/h to m/s
+L = a+b;
+
+x0 = [0; 0];
+% Diff steering inputs
+delta_values = [0.1];
+
+dt = 0.01; 
+T_total = 10;%time that car is moving
+
+figure;
+hold on;
+
+for i=1:length(delta_values)
+
+    delta = delta_values(i);
+    A = [-(Caf + Car)/(m*u), (a*Caf + b*Car)/(m*u) - u;
+         (-a*Caf + b*Car)/(Iz*u), -(a^2*Caf + b^2*Car)/(Iz*u)];
+
+    B = [Caf/m;
+         a*Caf/Iz];
+
+    f = @(t, x) A * x + B * delta;
+    [t_track, x_track] = solveIVP(f, [0, T_total], x0, dt, @rk4);
+
+    v = x_track(1,:);
+    r = x_track(2,:);
+
+    phi = zeros(1, length(t_track));%Riemann Sum
+    for i = 2:length(t_track)
+        phi(i) = phi(i-1) + r(i-1) * (t_track(i) - t_track(i-1));
+    end
+
+    x_dot = u * cos(phi) - (v + a.*r) .* sin(phi);
+    y_dot = u * sin(phi) + (v + a.*r) .* cos(phi);
+
+    X = zeros(1, length(t_track));%Integration
+    Y = zeros(1, length(t_track));
+    for i = 2:length(t_track)
+        X(i) = X(i-1) + x_dot(i-1) * (t_track(i) - t_track(i-1));
+        Y(i) = Y(i-1) + y_dot(i-1) * (t_track(i) - t_track(i-1));
+    end
+
+    plot(X, Y, 'LineWidth', 2, 'DisplayName', sprintf('%.1f rad', delta));
+    hold on
+end
+
+xlabel('X (m)');
+ylabel('Y (m)');
+title('Handling Behaviour of Car with Step Steering Experiment');
+legend;
+grid on;
+axis equal;
+
 % Generic IVP solver
 function [t, y] = solveIVP(f, tspan, y0, h, solver)
     t = tspan(1):h:tspan(2);
@@ -57,13 +113,6 @@ function ynew = rk4(f, t, y, h)
     ynew = y + (h / 6) * (k1 + 2*k2 + 2*k3 + k4);
 end
 
-plot(t,x(1,:),"b", LineWidth=2);
-title("Time vs Yaw")
-ylabel("Lateral Velocity");
-xlabel("Time");
-grid on;
-
-
 %Euler Method (forward)
 function [t,x] = euler_1(ode, tspan, x0, dt)
 
@@ -76,65 +125,3 @@ function [t,x] = euler_1(ode, tspan, x0, dt)
         x(:, i+1) = x(:, i) + dt * ode(t(i), x(:, i));
     end
 end
-
-% Calums Speed Changer 
-u_values = [20,50,75,100,200,300] / 3.6;
-
-%RK4 different Longitudinal Speeds
-for i = 1:length(u_values)
-    u = u_values(i);
-
-    A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
-     (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
-    
-    B = [Caf/m; a*Caf/Iz];
-
-    f = @(t, x) A * x + B * delta;
-    [t, x] = solveIVP(f, [0, T], x0, dt, @rk4);
-    figure(1);
-    hold on;
-    plot(t,x(1,:),'DisplayName', ['u = ',num2str(u), 'm/s']);
-    legend;
-    xlabel('Times (s)');
-    ylabel('Lateral Acceleration (m/s)')
-    title("Different u values - RK4");
-    figure(2);
-    hold on;
-    plot(t,x(2,:),'DisplayName', ['u = ',num2str(u), 'm/s']);
-    legend;
-    xlabel('Times (s)');
-    ylabel('Yaw Rate')
-    title("Different u values - RK4");
-
-end  
-
-%Eulers Longitudinal Speeds
-for p = 1:length(u_values)
-    u = u_values(p);
-
-    A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
-     (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
-    
-    B = [Caf/m; a*Caf/Iz];
-
-    f = @(t, x) A * x + B * delta;
-
-    [t, x] = euler_1(f, tspan, x0, dt);
-
-    figure(3);
-    hold on;
-    plot(t,x(1,:),'DisplayName', ['u = ',num2str(u), 'm/s']);
-    legend;
-    xlabel('Times (s)');
-    ylabel('Lateral Acceleration (m/s2)')
-    title("Different u values - Euler");
-    figure(4);
-    hold on;
-    plot(t,x(2,:),'DisplayName', ['u = ',num2str(u), 'm/s']);
-    legend;
-    xlabel('Times (s)');
-    ylabel('Yaw Rate')
-    title("Different u values - Euler");
-
-end  
-
