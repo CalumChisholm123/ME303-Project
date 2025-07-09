@@ -159,41 +159,40 @@ hold on;
 
 
 
-    A = [-(Caf + Car)/(m*u), (a*Caf + b*Car)/(m*u) - u;
-         (-a*Caf + b*Car)/(Iz*u), -(a^2*Caf + b^2*Car)/(Iz*u)];
+A = [-(Caf + Car)/(m*u), (a*Caf + b*Car)/(m*u) - u;
+    (-a*Caf + b*Car)/(Iz*u), -(a^2*Caf + b^2*Car)/(Iz*u)];
 
-    B = [Caf/m;
-         a*Caf/Iz];
+B = [Caf/m;
+    a*Caf/Iz];
 
-    f = @(t, x) A * x + B * delta;
-    [t_track, x_track] = solveIVP(f, [0, T_total], x0, dt, @rk4);
+f = @(t, x) A * x + B * delta;
+[t_track, x_track] = solveIVP(f, [0, T_total], x0, dt, @rk4);
 
-    v = x_track(1,:);
-    r = x_track(2,:);
+v = x_track(1,:);
+r = x_track(2,:);
 
-    phi = zeros(1, length(t_track));%Riemann Sum
-    for i = 2:length(t_track)
-        phi(i) = phi(i-1) + r(i-1) * (t_track(i) - t_track(i-1));
-    end
+psy = zeros(1, length(t_track));%Riemann Sum
+for i = 2:length(t_track)
+    psy(i) = psy(i-1) + r(i-1) * (t_track(i) - t_track(i-1));
+end
 
-    x_dot = u * cos(phi) - (v + a.*r) .* sin(phi);
-    y_dot = u * sin(phi) + (v + a.*r) .* cos(phi);
+x_dot = u * cos(psy) - (v + a.*r) .* sin(psy);
+y_dot = u * sin(psy) + (v + a.*r) .* cos(psy);
 
-    X = zeros(1, length(t_track));%Integration
-    Y = zeros(1, length(t_track));
-    for i = 2:length(t_track)
-        X(i) = X(i-1) + x_dot(i-1) * (t_track(i) - t_track(i-1));
-        Y(i) = Y(i-1) + y_dot(i-1) * (t_track(i) - t_track(i-1));
-    end
+X = zeros(1, length(t_track));%Integration
+Y = zeros(1, length(t_track));
+for i = 2:length(t_track)
+    X(i) = X(i-1) + x_dot(i-1) * (t_track(i) - t_track(i-1));
+    Y(i) = Y(i-1) + y_dot(i-1) * (t_track(i) - t_track(i-1));
+end
 
-    plot(X, Y, 'LineWidth', 2, 'DisplayName', sprintf('%.1f rad', delta));
-    hold on
+plot(X, Y, 'LineWidth', 2, 'DisplayName', sprintf('%.1f rad', delta));
+hold on
 
 
 xlabel('X (m)');
 ylabel('Y (m)');
 title('Handling Behaviour of Car with Step Steering Experiment');
-legend;
 grid on;
 
 
