@@ -1,8 +1,9 @@
-
-
 clear all; 
 close all;
 clc;
+
+addpath('./');
+
 
 % Parameters
 m = 1400;          % kg
@@ -39,7 +40,6 @@ x0 = [0; 0];
 
 [t, x] = solveIVP(f, [0, T], x0, dt, @rk4);
 
-
 % Generic IVP solver
 function [t, y] = solveIVP(f, tspan, y0, h, solver)
     t = tspan(1):h:tspan(2);
@@ -58,6 +58,7 @@ function ynew = rk4(f, t, y, h)
     k4 = f(t + h, y + h * k3);
     ynew = y + (h / 6) * (k1 + 2*k2 + 2*k3 + k4);
 end
+
 %RK4 Plots for Part A1
 figure(1)
 plot(t,x(2,:),"b", LineWidth=2);
@@ -221,4 +222,32 @@ legend('Ideal Yaw Rate', 'Actual Yaw Rate');
 xlabel('Speed (km/h)');
 ylabel('Yaw Rate (rad)');
 title('Ideal vs Actual Yaw Rate at Different Speeds');
+grid on;
+
+%%
+clear; 
+close all 
+clc;
+
+% Create an instance of the VehicleDynamics class
+vehicle = VehicleDynamics();
+
+% Run the simulation
+[t, x] = vehicle.runSimulation();
+
+% Plot results
+figure(1);
+plot(t, x(2, :), "b", 'LineWidth', 2);
+hold on;
+title("Time vs Yaw - RK4");
+ylabel("Yaw Rate (degrees)");
+xlabel("Time");
+grid on;
+
+figure(2);
+plot(t, x(1, :), "b", 'LineWidth', 2);
+hold on;
+title("Time vs Lateral Velocity - RK4");
+ylabel("Lateral Velocity (m/s)");
+xlabel("Time");
 grid on;
