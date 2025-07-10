@@ -100,6 +100,31 @@ plot(t,x(2,:), "b", LineWidth=2);
 xlabel('Times (s)');
 ylabel('Yaw Rate')
 title("Time Vs. Yaw Rate - Euler");
+
+
+
+u_values = [20,50,75,100,200,300] / 3.6;
+
+figure(5);
+hold on;
+for i = 1:length(u_values)
+    u = u_values(i);
+
+    A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
+     (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
+    
+    B = [Caf/m; a*Caf/Iz];
+
+    f = @(t, x) A * x + B * delta;
+    [t, x] = solveIVP(f, [0, T], x0, dt, @rk4);
+
+    plot(t,x(2,:),'Displayname', ['u = ',num2str(u)]);
+
+end  
+legend;
+xlabel('Times (s)');
+ylabel ('Lateral Acceleration (m/s2)');
+title("Different u values - RK4");
 % Calums Speed Changer 
 % u_values = [20,50,75,100,200,300] / 3.6;
 
