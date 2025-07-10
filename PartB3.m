@@ -79,40 +79,46 @@ function [t,x] = euler_1(ode, tspan, x0, dt)
     end
 end
 
+plot(t,x(1,:),"b", LineWidth=2);
+title("Time vs Yaw")
+ylabel("Lateral Velocity");
+xlabel("Time");
+grid on;
+
 % Calums Speed Changer 
 u_values = [20,50,75,100,200,300] / 3.6;
 
-%RK4 different Longitudinal Speeds
-for i = 1:length(u_values)
-    u = u_values(i);
+% %RK4 different Longitudinal Speeds
+% for i = 1:length(u_values)
+%     u = u_values(i);
+% 
+%     A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
+%      (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
+% 
+%     B = [Caf/m; a*Caf/Iz];
+% 
+%     f = @(t, x) A * x + B * delta;
+%     [t, x] = solveIVP(f, [0, T], x0, dt, @rk4);
+%     figure(1);
+%     hold on;
+%     plot(t,x(1,:),'DisplayName', ['u = ',num2str(u), 'm/s']);
+%     legend;
+%     xlabel('Times (s)');
+%     ylabel('Lateral Acceleration (m/s)')
+%     title("Different u values - RK4");
+%     figure(2);
+%     hold on;
+%     plot(t,x(2,:),'DisplayName', ['u = ',num2str(u), 'm/s']);
+%     legend;
+%     xlabel('Times (s)');
+%     ylabel('Yaw Rate')
+%     title("Different u values - RK4");
 
-    A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
-     (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
-    
-    B = [Caf/m; a*Caf/Iz];
-
-    f = @(t, x) A * x + B * delta;
-    [t, x] = solveIVP(f, [0, T], x0, dt, @rk4);
-    figure(1);
-    hold on;
-    plot(t,x(1,:),'DisplayName', ['u = ',num2str(u), 'm/s']);
-    legend;
-    xlabel('Times (s)');
-    ylabel('Lateral Acceleration (m/s)')
-    title("Different u values - RK4");
-    figure(2);
-    hold on;
-    plot(t,x(2,:),'DisplayName', ['u = ',num2str(u), 'm/s']);
-    legend;
-    xlabel('Times (s)');
-    ylabel('Yaw Rate')
-    title("Different u values - RK4");
-
-end  
+% end  
 
 %Eulers Longitudinal Speeds
-for p = 1:length(u_values)
-    u = u_values(p);
+% for p = 1:length(u_values)
+%     u = u_values(p);
 
     A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
      (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
@@ -125,21 +131,19 @@ for p = 1:length(u_values)
 
     figure(3);
     hold on;
-    plot(t,x(1,:),'DisplayName', ['u = ',num2str(u), 'm/s']);
-    legend;
+    plot(t,x(1,:));
     xlabel('Times (s)');
     ylabel('Lateral Acceleration (m/s2)')
-    title("Different u values - Euler");
+    title("Time Vs. Lateral Acceleration - Euler");
     figure(4);
     hold on;
-    plot(t,x(2,:),'DisplayName', ['u = ',num2str(u), 'm/s']);
-    legend;
+    plot(t,x(2,:));
     xlabel('Times (s)');
     ylabel('Yaw Rate')
-    title("Different u values - Euler");
+    title("Time Vs. Yaw Rate - Euler");
 
-end  
-close all;
+% end  
+
 %============ Part B 3. ===========
 u = 100/3.6; %chaning U to 100km/hr
 tspan = [0 5]; %changing span to 5
