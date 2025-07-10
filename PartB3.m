@@ -59,12 +59,21 @@ function ynew = rk4(f, t, y, h)
     ynew = y + (h / 6) * (k1 + 2*k2 + 2*k3 + k4);
 end
 
-plot(t,x(1,:),"b", LineWidth=2);
-title("Time vs Yaw")
-ylabel("Lateral Velocity");
+figure(1)
+plot(t,x(2,:),"b", LineWidth=2);
+hold on;
+title("Time vs Yaw - RK4")
+ylabel("Yaw Rate (degrees)");
 xlabel("Time");
 grid on;
 
+figure(2)
+plot(t,x(1,:),"b", LineWidth=2);
+hold on;
+title("Time vs Lateral Velocity - RK4")
+ylabel("Lateral Velocity (m/s)");
+xlabel("Time");
+grid on;
 
 %Euler Method (forward)
 function [t,x] = euler_1(ode, tspan, x0, dt)
@@ -79,14 +88,20 @@ function [t,x] = euler_1(ode, tspan, x0, dt)
     end
 end
 
-plot(t,x(1,:),"b", LineWidth=2);
-title("Time vs Yaw")
-ylabel("Lateral Velocity");
-xlabel("Time");
-grid on;
-
+figure(3);
+hold on;
+plot(t,x(1,:), "b", LineWidth=2);
+xlabel('Times (s)');
+ylabel('Lateral Acceleration (m/s2)')
+title("Time Vs. Lateral Acceleration - Euler");
+figure(4);
+hold on;
+plot(t,x(2,:), "b", LineWidth=2);
+xlabel('Times (s)');
+ylabel('Yaw Rate')
+title("Time Vs. Yaw Rate - Euler");
 % Calums Speed Changer 
-u_values = [20,50,75,100,200,300] / 3.6;
+% u_values = [20,50,75,100,200,300] / 3.6;
 
 % %RK4 different Longitudinal Speeds
 % for i = 1:length(u_values)
@@ -116,31 +131,9 @@ u_values = [20,50,75,100,200,300] / 3.6;
 
 % end  
 
-%Eulers Longitudinal Speeds
-% for p = 1:length(u_values)
-%     u = u_values(p);
 
-    A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
-     (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
-    
-    B = [Caf/m; a*Caf/Iz];
 
-    f = @(t, x) A * x + B * delta;
 
-    [t, x] = euler_1(f, tspan, x0, dt);
-
-    figure(3);
-    hold on;
-    plot(t,x(1,:));
-    xlabel('Times (s)');
-    ylabel('Lateral Acceleration (m/s2)')
-    title("Time Vs. Lateral Acceleration - Euler");
-    figure(4);
-    hold on;
-    plot(t,x(2,:));
-    xlabel('Times (s)');
-    ylabel('Yaw Rate')
-    title("Time Vs. Yaw Rate - Euler");
 
 % end  
 
