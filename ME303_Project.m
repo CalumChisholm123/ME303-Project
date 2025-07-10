@@ -58,10 +58,19 @@ function ynew = rk4(f, t, y, h)
     k4 = f(t + h, y + h * k3);
     ynew = y + (h / 6) * (k1 + 2*k2 + 2*k3 + k4);
 end
-
+%RK4 Plots for Part A1
+figure(1)
+plot(t,x(2,:),"b", LineWidth=2);
+hold on;
+title("Time vs Yaw - RK4")
+ylabel("Yaw Rate (degrees)");
+xlabel("Time");
+grid on;
+figure(2)
 plot(t,x(1,:),"b", LineWidth=2);
-title("Time vs Yaw")
-ylabel("Lateral Velocity");
+hold on;
+title("Time vs Lateral Velocity - RK4")
+ylabel("Lateral Velocity (m/s)");
 xlabel("Time");
 grid on;
 
@@ -78,11 +87,25 @@ function [t,x] = euler_1(ode, tspan, x0, dt)
         x(:, i+1) = x(:, i) + dt * ode(t(i), x(:, i));
     end
 end
+%Euler Plots for Part A1
+figure(3);
+hold on;
+plot(t,x(1,:), "b", LineWidth=2);
+xlabel('Times (s)');
+ylabel('Lateral Acceleration (m/s2)')
+title("Time Vs. Lateral Acceleration - Euler");
+figure(4);
+hold on;
+plot(t,x(2,:), "b", LineWidth=2);
+xlabel('Times (s)');
+ylabel('Yaw Rate (rad/s)')
+title("Time Vs. Yaw Rate - Euler");
 
-% Calums Speed Changer 
+%B1 RK4 Plot
 u_values = [20,50,75,100,200,300] / 3.6;
 
-%RK4 different Longitudinal Speeds
+figure(5);
+hold on;
 for i = 1:length(u_values)
     u = u_values(i);
 
@@ -93,26 +116,18 @@ for i = 1:length(u_values)
 
     f = @(t, x) A * x + B * delta;
     [t, x] = solveIVP(f, [0, T], x0, dt, @rk4);
-    figure(1);
-    hold on;
-    plot(t,x(1,:),'DisplayName', ['u = ',num2str(u), 'm/s']);
-    legend;
-    xlabel('Times (s)');
-    ylabel('Lateral Acceleration (m/s)')
-    title("Different u values - RK4");
-    figure(2);
-    hold on;
-    plot(t,x(2,:),'DisplayName', ['u = ',num2str(u), 'm/s']);
-    legend;
-    xlabel('Times (s)');
-    ylabel('Yaw Rate')
-    title("Different u values - RK4");
+
+    plot(t,x(1,:),'Displayname', ['u = ',num2str(u), 'm/s']);
 
 end  
-
-%Eulers Longitudinal Speeds
-for p = 1:length(u_values)
-    u = u_values(p);
+legend;
+xlabel('Times (s)');
+ylabel ('Lateral Acceleration (m/s2)');
+title("Lateral Acceleration Vs. Various Speeds - RK4");
+figure(6);
+hold on;
+for i = 1:length(u_values)
+    u = u_values(i);
 
     A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
      (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
@@ -120,23 +135,90 @@ for p = 1:length(u_values)
     B = [Caf/m; a*Caf/Iz];
 
     f = @(t, x) A * x + B * delta;
-
-    [t, x] = euler_1(f, tspan, x0, dt);
-
-    figure(3);
-    hold on;
-    plot(t,x(1,:),'DisplayName', ['u = ',num2str(u), 'm/s']);
-    legend;
-    xlabel('Times (s)');
-    ylabel('Lateral Acceleration (m/s2)')
-    title("Different u values - Euler");
-    figure(4);
-    hold on;
-    plot(t,x(2,:),'DisplayName', ['u = ',num2str(u), 'm/s']);
-    legend;
-    xlabel('Times (s)');
-    ylabel('Yaw Rate')
-    title("Different u values - Euler");
+    [t, x] = solveIVP(f, [0, T], x0, dt, @rk4);
+   
+    plot(t,x(2,:),'Displayname', ['u = ',num2str(u), 'm/s']);
 
 end  
+legend;
+xlabel('Times (s)');
+ylabel ('Yaw (rad/s)');
+title("Yaw Rate Vs. Various Speeds - RK4");
 
+%============ Part B 3. ===========
+u = 100/3.6; %chaning U to 100km/hr
+tspan = [0 5]; %changing span to 5
+L = a+b;
+
+dt = 0.001; 
+T_total = 50;%time that car is moving
+
+figure(7);
+hold on;
+
+A = [-(Caf + Car)/(m*u), (a*Caf + b*Car)/(m*u) - u;
+    (-a*Caf + b*Car)/(Iz*u), -(a^2*Caf + b^2*Car)/(Iz*u)];
+
+B = [Caf/m;
+    a*Caf/Iz];
+
+f = @(t, x) A * x + B * delta;
+[t_track, x_track] = solveIVP(f, [0, T_total], x0, dt, @rk4);
+
+v = x_track(1,:);
+r = x_track(2,:);
+
+psy = zeros(1, length(t_track));%Riemann Sum
+for i = 2:length(t_track)
+    psy(i) = psy(i-1) + r(i-1) * (t_track(i) - t_track(i-1));
+end
+
+x_dot = u * cos(psy) - (v + a.*r) .* sin(psy);
+y_dot = u * sin(psy) + (v + a.*r) .* cos(psy);
+
+X = zeros(1, length(t_track));%Integration
+Y = zeros(1, length(t_track));
+for i = 2:length(t_track)
+    X(i) = X(i-1) + x_dot(i-1) * (t_track(i) - t_track(i-1));
+    Y(i) = Y(i-1) + y_dot(i-1) * (t_track(i) - t_track(i-1));
+end
+
+plot(X, Y, 'LineWidth', 2, 'DisplayName', sprintf('%.1f rad', delta));
+hold on;
+xlabel('X (m)');
+ylabel('Y (m)');
+title('Handling Behaviour of Car with Step Steering Experiment');
+grid on;
+
+ideal_list = [];
+actual_list = [];
+
+for i = 1:length(u_values)
+    u = u_values(i);
+
+    A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
+         (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
+    B = [Caf/m; a*Caf/Iz];
+
+    f = @(t, x) A * x + B * delta;
+    x0 = [0; 0];
+
+    T = 10;
+    dt = 0.01;
+    [t, x] = solveIVP(f, [0 T], x0, dt, @rk4);
+
+    ideal = (u * delta) / L;
+    actual = mean(x(2,end-100:end)); % average of last ~1s to get steady-state
+
+    ideal_list(end+1) = ideal;
+    actual_list(end+1) = actual;
+end
+
+figure(8);
+plot(u_values*3.6, ideal_list, 'k--', 'LineWidth', 2); hold on;
+plot(u_values*3.6, actual_list, 'ro-', 'LineWidth', 2);
+legend('Ideal Yaw Rate', 'Actual Yaw Rate');
+xlabel('Speed (km/h)');
+ylabel('Yaw Rate (rad)');
+title('Ideal vs Actual Yaw Rate at Different Speeds');
+grid on;
