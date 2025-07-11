@@ -269,3 +269,64 @@ lambda = eig(A);
 disp(lambda)
 
 %============ Part F =================
+m = 1580;          % kg
+a = 1.1836;          % m
+b = 1.5064;          % m
+Caf = 69800;       % N/rad
+Car = 69900;       % N/rad
+Iz = 2817.1;         % kg·m^2
+u = 180 / 3.6;      % Convert from km/h to m/s
+delta = 0.1;       % Step steering input (rad)
+
+tspan = [0 5]; %changing span to 5
+L = a+b;
+u_values = [20, 40, 60, 80, 100, 200] / 3.6;
+
+yaw_rate = 0.1:0.1:0.5;
+
+x0 = [0; 0];
+
+
+dt = 0.001; 
+T_total = 50;%time that car is moving
+
+figure;
+hold on;
+
+
+
+A = [-(Caf + Car)/(m*u), (a*Caf + b*Car)/(m*u) - u;
+    (-a*Caf + b*Car)/(Iz*u), -(a^2*Caf + b^2*Car)/(Iz*u)];
+
+B = [Caf/m;
+    a*Caf/Iz];
+
+f = @(t, x) A * x + B * delta;
+[t_track, x_track] = solveIVP(f, [0, T_total], x0, dt, @rk4);
+
+v = x_track(1,:);
+r = x_track(2,:);
+
+psy = zeros(1, length(t_track));%Riemann Sum
+for i = 2:length(t_track)
+    psy(i) = psy(i-1) + r(i-1) * (t_track(i) - t_track(i-1));
+end
+
+x_dot = u * cos(psy) - (v + a.*r) .* sin(psy);
+y_dot = u * sin(psy) + (v + a.*r) .* cos(psy);
+
+X = zeros(1, length(t_track));%Integration
+Y = zeros(1, length(t_track));
+for i = 2:length(t_track)
+    X(i) = X(i-1) + x_dot(i-1) * (t_track(i) - t_track(i-1));
+    Y(i) = Y(i-1) + y_dot(i-1) * (t_track(i) - t_track(i-1));
+end
+
+plot(X, Y, 'LineWidth', 2, 'DisplayName', sprintf('%.1f rad', delta));
+hold on
+
+
+xlabel('X (m)');
+ylabel('Y (m)');
+title('Handling Behaviour of RAV4');
+grid on;
