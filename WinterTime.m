@@ -171,11 +171,11 @@ close all; clear all;
 m = 1580;          % kg
 a = 1.1836;          % m
 b = 1.5064;          % m
-Caf = 55000;       % N/rad
-Car = 25000;       % N/rad
+Caf = 69800;       % N/rad
+Car = 69900;       % N/rad
 Iz = 2817.1;         % kg·m^2
 u = 180 / 3.6;      % Convert from km/h to m/s
-delta = 0.001;       % Step steering input (rad)
+delta = 0.1;       % Step steering input (rad)
 
 tspan = [0 5]; %changing span to 5
 L = a+b;
@@ -187,7 +187,7 @@ x0 = [0; 0];
 
 
 dt = 0.001; 
-T_total = 500;%time that car is moving
+T_total = 50;%time that car is moving
 
 figure;
 hold on;
@@ -227,7 +227,7 @@ hold on
 
 xlabel('X (m)');
 ylabel('Y (m)');
-title('Handling Behaviour of Car with Step Steering Experiment');
+title('Handling Behaviour of RAV4');
 grid on;
 
 
