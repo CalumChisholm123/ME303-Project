@@ -75,7 +75,7 @@ xlabel("Time");
 grid on;
 
 
-%Euler Method (forward)
+%=========Euler Method (forward)================
 function [t,x] = euler_1(ode, tspan, x0, dt)
 
     t = tspan(1) : dt : tspan(2);
@@ -87,7 +87,7 @@ function [t,x] = euler_1(ode, tspan, x0, dt)
         x(:, i+1) = x(:, i) + dt * ode(t(i), x(:, i));
     end
 end
-%Euler Plots for Part A1
+%========Euler Plots for Part A1=================
 figure(3);
 hold on;
 plot(t,x(1,:), "b", LineWidth=2);
@@ -144,6 +144,44 @@ legend;
 xlabel('Times (s)');
 ylabel ('Yaw (rad/s)');
 title("Yaw Rate Vs. Various Speeds - RK4");
+
+%============ Part B2 ============
+clear all;
+clc
+
+% Parameters
+m = 1400;          % kg
+a = 0.988;          % distance of CM to front axle 
+b = 1.482;          % distance of CM to rear axle 
+Caf = 25000;       % N/rad
+Car = 21000;       % N/rad
+Iz = 2420;         % kg·m^2
+delta = 0.1;       % Step steering input (rad)
+
+
+u_values = (1:0.0001:300);
+
+for i = 1:length(u_values)
+    u = u_values(i);
+    
+    A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
+     (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
+    
+    lambda = eig(A);
+
+
+    if any(real(lambda) >= 0)
+        u = u*3.6;
+        disp(u)
+
+        disp('UNSTABLE: At least one eigenvalue has a non-negative real part.');
+
+         break;
+    end
+
+ end
+
+
 
 %============ Part B 3. ===========
 u = 100/3.6; %chaning U to 100km/hr
@@ -222,3 +260,12 @@ xlabel('Speed (km/h)');
 ylabel('Yaw Rate (rad)');
 title('Ideal vs Actual Yaw Rate at Different Speeds');
 grid on;
+
+%============ Part C1 ====================
+A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
+     (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
+
+lambda = eig(A);
+disp(lambda)
+
+%============ Part F =================
