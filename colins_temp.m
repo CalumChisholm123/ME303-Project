@@ -48,7 +48,7 @@ x0 = [0; 0];
 delta_values = [0.1];
 
 dt = 0.01; 
-T_total = 10;%time that car is moving
+T_total = 100;%time that car is moving
 
 figure;
 hold on;
@@ -59,8 +59,8 @@ for i=1:length(delta_values)
     A = [-(Caf + Car)/(m*u), (a*Caf + b*Car)/(m*u) - u;
          (-a*Caf + b*Car)/(Iz*u), -(a^2*Caf + b^2*Car)/(Iz*u)];
 
-    B = [Caf/m;
-         a*Caf/Iz];
+    B = [2*Caf/m;
+         2*a*Caf/Iz];
 
     f = @(t, x) A * x + B * delta;
     [t_track, x_track] = solveIVP(f, [0, T_total], x0, dt, @rk4);

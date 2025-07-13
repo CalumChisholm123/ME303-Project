@@ -13,7 +13,7 @@ delta = 0.1;       % Step steering input (rad)
 x0 = [0; 0];
 Car_span = [10000, 50000];
 
-%[C_rears, stability_list, lambdas_real1, lambdas_real2, lambdas_imag1, lambdas_imag2] = check_stability(Caf, Car_span, 1, m, u, a, b, Iz);
+[C_rears, stability_list, lambdas_real1, lambdas_real2, lambdas_imag1, lambdas_imag2] = check_stability(Caf, Car_span, 1, m, u, a, b, Iz);
 
 %Plotting the real and imaginary components and applying a gradient
 max_C_rear = Car_span(2);
@@ -60,7 +60,7 @@ function ynew = rk4(f, t, y, h)
     ynew = y + (h / 6) * (k1 + 2*k2 + 2*k3 + k4);
 end
 
-%Check all C_alpha values, also solve the ODE for each C_alpha? No need...
+%Find lambda values for all rear cornering stiffness values
 function [C_rears, stability_list, lambdas_real1, lambdas_real2, lambdas_imag1, lambdas_imag2] = check_stability(Caf, Car_span, stepSize, m, u, a, b, Iz)
     C_rears = Car_span(1) : stepSize : Car_span(2);
     stability_list = zeros(1, length(C_rears)); %0 of unstable, 1 if stable
@@ -99,6 +99,8 @@ function plot_gradient(C_rears, lambdas_real1, lambdas_real2, lambdas_imag1, lam
     end
 end
 
+%Solve lateral velocity and yaw rates for different rear cornering
+%stiffnesses and plot them
 function [times, lat_vel_results, yaw_rate_results] = solve_diff_Cars(Cars_list, tspan, stepSize, x0, m, u, a, b, Iz, Caf, delta)
     times = tspan(1):stepSize:tspan(2);
     lat_vel_results = zeros(length(Cars_list), length(times));
