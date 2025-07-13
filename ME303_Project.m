@@ -145,6 +145,71 @@ xlabel('Times (s)');
 ylabel ('Yaw (rad/s)');
 title("Yaw Rate Vs. Various Speeds - RK4");
 
+%% ============ Part A2 ============
+%Confirm the order of solvers
+stepSizes = [0.1, 0.05, 0.01, 0.001];
+[euler_errors, RK4_errors] = grid_check_L2_norm(f, tspan, x0, stepSizes, 0.0000001); %10^-7 as ground truth 
+euler_slope = polyfit(log(stepSizes), log(euler_errors), 1);
+RK4_slope = polyfit(log(stepSizes), log(RK4_errors), 1);
+
+%Plot points at t = 1
+[lateral_vels, yaw_rates] = grid_residuals(f, tspan, x0, stepSizes, 1);
+
+function [euler_errors, RK4_errors] = grid_check_L2_norm(ODE, tspan, x0, stepSizes, truth_size)
+    euler_errors = zeros(length(stepSizes),1); %Store L2 values for different stepSizes
+    RK4_errors = zeros(length(stepSizes),1);
+
+    %Solve the ground truth for t = 1 s and RK4 method
+    time_select = 1;
+    [t_true, x_true] = solveIVP(ODE, tspan, x0, truth_size, @rk4);
+    t_index = find(t_true==time_select);
+    tru_lat_speed = x_true(1, t_index);
+    tru_yaw_rate = x_true(2, t_index);
+
+    for i = 1:length(stepSizes) %iterate through each step size (h) value
+        [t, x_dot] = euler_1(ODE, tspan, x0, stepSizes(i));
+        temp_index = find(t == time_select);
+        lat_speed = x_dot(1, temp_index);
+        yaw_rate = x_dot(2, temp_index);
+        euler_errors(i) = sqrt((tru_lat_speed - lat_speed)^2 + (tru_yaw_rate - yaw_rate)^2);
+
+        %Do the same for RK4 error
+        [t, x_dot] = solveIVP(ODE, tspan, x0, stepSizes(i), @rk4);
+        temp_index = find(t == time_select);
+        lat_speed = x_dot(1, temp_index);
+        yaw_rate = x_dot(2, temp_index);
+        RK4_errors(i) = sqrt((tru_lat_speed - lat_speed)^2 + (tru_yaw_rate - yaw_rate)^2);
+    end
+    
+    figure (1)
+    plot(log10(stepSizes), log10(euler_errors),'DisplayName',"Euler's");
+    hold on
+    plot(log10(stepSizes), log10(RK4_errors), 'DisplayName', 'RK4');
+    title("Euler's and RK4 Error")
+    xlabel('log(grid size)')
+    ylabel('log(L2-norm error)')
+    legend
+    grid on
+end
+
+%Plot grid independence
+function [lateral_vels, yaw_rates] = grid_residuals(ODE, tspan, x0, stepSizes, time_select)
+    lateral_vels = zeros(2, length(stepSizes)); %1 for Euler, 2 for RK4
+    yaw_rates = zeros(2, length(stepSizes));
+    
+    for i = 1:length(stepSizes)
+        [t, x] = euler_1(ODE, tspan, x0, stepSizes(i));
+        temp_indx = find(t == time_select);
+        lateral_vels(1,i) = x(1,temp_indx);
+        yaw_rates(1, i) = x(2, temp_indx);
+
+        [t, x] = solveIVP(ODE, tspan, x0, stepSizes(i), @rk4);
+        temp_index = find(t == time_select);
+        lateral_vels(2, i) = x(1, temp_index);
+        yaw_rates(2, i) = x(2, temp_index);
+    end
+end
+%%
 %============ Part B2 ============
 clear all;
 clc
@@ -268,6 +333,79 @@ A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
 lambda = eig(A);
 disp(lambda)
 
+%% ==================== Section D1 ====================
+Car_span = [10000, 50000];
+
+[C_rears, stability_list, lambdas_real1, lambdas_real2, lambdas_imag1, lambdas_imag2] = check_stability(Caf, Car_span, 1, m, u, a, b, Iz);
+Cars_list = [18000 21000 30000];
+tspan = [0, 5];
+[times, lat_vel_results, yaw_rate_results] = solve_diff_Cars(Cars_list, tspan, 0.001, x0, m, u, a, b, Iz, Caf, delta);
+
+%Find lambda values for all rear cornering stiffness values
+function [C_rears, stability_list, lambdas_real1, lambdas_real2, lambdas_imag1, lambdas_imag2] = check_stability(Caf, Car_span, stepSize, m, u, a, b, Iz)
+    C_rears = Car_span(1) : stepSize : Car_span(2);
+    stability_list = zeros(1, length(C_rears)); %0 of unstable, 1 if stable
+    lambdas_real1 = zeros(1, length(C_rears));
+    lambdas_real2 = zeros(1, length(C_rears));
+    lambdas_imag1 = zeros(1, length(C_rears));
+    lambdas_imag2 = zeros(1, length(C_rears));
+
+    for i = 1:1:length(C_rears)
+        Car = C_rears(i);
+        A = [-(Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
+              (-a*Caf + b*Car)/(Iz*u), - (a^2 * Caf + b^2 * Car)/(Iz*u)];
+
+        lambdas = eig(A);
+        lambdas_real1(i) = real(lambdas(1));
+        lambdas_real2(i) = real(lambdas(2));
+        lambdas_imag1(i) = imag(lambdas(1));
+        lambdas_imag2(i) = imag(lambdas(2));
+    end
+end
+
+%Solve lateral velocity and yaw rates for different rear cornering
+%stiffnesses and plot them
+function [times, lat_vel_results, yaw_rate_results] = solve_diff_Cars(Cars_list, tspan, stepSize, x0, m, u, a, b, Iz, Caf, delta)
+    times = tspan(1):stepSize:tspan(2);
+    lat_vel_results = zeros(length(Cars_list), length(times));
+    yaw_rate_results = zeros(length(Cars_list), length(times));
+
+    for i = 1:length(Cars_list)
+        Car = Cars_list(i);
+        A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
+            (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
+        B = [Caf/m; a*Caf/Iz];
+
+        f = @(t, x) A * x + B * delta;
+
+        [t, x] = solveIVP(f, tspan, x0, stepSize, @rk4);
+        lat_vel_results(i, :) = x(1, :);
+        yaw_rate_results(i, :) = x(2, :);
+    end
+
+    %Plot everything in a separate loop for clarity
+    figure(1)
+    for i = 1:length(Cars_list)
+        plot(times, lat_vel_results(i,:), "DisplayName", sprintf("C_{\\alphar} = %.0f N/rad", Cars_list(i)));
+        hold on
+    end
+    title('$\dot{y}$ (m/s) for constant $C_{\alpha f}$ and varying $C_{\alpha r}$', 'Interpreter', 'latex');
+    ylabel('$\dot{y}$ (m/s)', 'Interpreter', 'latex')
+    xlabel("Time (s)")
+    legend
+    grid on
+
+    figure(2)
+    for i = 1:length(Cars_list)
+        plot(times, yaw_rate_results(i,:), "DisplayName", sprintf("C_{\\alphar} = %.0f N/rad", Cars_list(i)));
+        hold on
+    end
+    title('$\dot{\psi}$ (rad/s) for constant $C_{\alpha f}$ and varying $C_{\alpha r}$', 'Interpreter', 'latex');
+    ylabel('$\dot{\psi}$ (m/s)', 'Interpreter', 'latex')
+    xlabel("Time (s)")
+    legend
+    grid on
+  end
 
 %% ==================== Section D2 ====================
 
