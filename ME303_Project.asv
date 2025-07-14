@@ -51,7 +51,7 @@ function [t, y] = solveIVP(f, tspan, y0, h, solver)
 end
 
 %% ==================== Part A1 ====================
-% ========== Runge-Kutta 4th order method ====
+% Runge-Kutta 4th order method
 function ynew = rk4(f, t, y, h)
     k1 = f(t, y);
     k2 = f(t + 0.5 * h, y + 0.5 * h * k1);
@@ -78,7 +78,7 @@ xlabel("Time");
 grid on;
 
 
-% ==================== Euler Method (forward) ====================
+% Euler Method (forward)
 function [t,x] = euler_1(ode, tspan, x0, dt)
 
     t = tspan(1) : dt : tspan(2);
@@ -105,7 +105,8 @@ xlabel('Times (s)');
 ylabel('Yaw Rate (rad/s)')
 title("Time Vs. Yaw Rate - Euler");
 
-%% B1 RK4 Plot
+%% ==================== Part B1 ====================
+% RK4 Plot
 u_values = [20,50,75,100,200,300] / 3.6;
 
 figure(5);
@@ -213,7 +214,7 @@ function [lateral_vels, yaw_rates] = grid_residuals(ODE, tspan, x0, stepSizes, t
         yaw_rates(2, i) = x(2, temp_index);
     end
 end
-%% ============ Part B2 ============
+%% ==================== Part B2 ====================
 clear all;
 clc
 
@@ -247,11 +248,9 @@ for i = 1:length(u_values)
          break;
     end
 
- end
+end
 
-
-
-%% ============ Part B3 ===========
+%% ==================== Part B3 ====================
 u = 100/3.6; %chaning U to 100km/hr
 tspan = [0 5]; %changing span to 5
 L = a+b;
@@ -329,14 +328,104 @@ ylabel('Yaw Rate (rad)');
 title('Ideal vs Actual Yaw Rate at Different Speeds');
 grid on;
 
-%============ Part C1 ====================
+%% ==================== Part C1 ====================
 A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
      (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
 
 lambda = eig(A);
 disp(lambda)
 
-%% ==================== Section D1 ====================
+%% ==================== Part C2 & C3 ====================
+clear all; 
+close all;
+clc;
+
+% Cornering stiffness is dependent on delta, road condition, and tire type
+u = 100 / 3.6;     % Convert from km/h to m/s
+delta = 0.1;       % Step steering input (rad)
+tire = "Normal";
+condition = "Normal";
+
+if condition == "Normal"
+    Caf = 25000;
+    car = 21000;
+end
+
+if condition == "Icy"
+    if tire == "Normal"
+        if delta <= 0.06
+            Caf = 20000;
+            car = 20000; 
+        elseif delta <= 0.2
+            Caf = 100;
+            car = 100;
+        else
+            Caf = 0;
+            car = 0;
+            e
+    end
+elseif tire == "Winter"
+    if delta <= 0.06
+        Caf = 20000;
+        car = 20000; 
+    elseif delta <= 0.3
+        Caf = 5000;
+        car = 5000;
+    else
+        Caf = 0;
+        car = 0;
+    end    
+end
+
+m = 1400;          % kg
+a = 1.14;          % m
+b = 1.33;          % m
+Iz = 2420;         % kg·m^2
+
+% Time setup
+tspan = [0,30];
+T = 60;                 % Total simulation time (s)
+dt = 0.01;              % Step Values 
+N = T/dt;               % Number of Steps 
+t = linspace(0,T,N+1);  % Time Vector 
+
+A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
+    (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
+B = [Caf/m; a*Caf/Iz];
+
+f = @(t, x) A * x + B * delta;
+x0 = [0; 0];
+
+
+[t_track, x_track] = solveIVP(f, [0, T], x0, dt, @rk4);
+
+% Extract lateral velocity and yaw rate
+v = x_track(1,:);  % lateral velocity (m/s)
+r = x_track(2,:);  % yaw rate (rad/s)
+
+% Integrate yaw angle over time to get heading direction
+psi = cumtrapz(t, r);  % heading angle (rad)
+
+% Compute global velocities in X and Y directions
+x_dot = u * cos(psi) - v .* sin(psi);
+y_dot = u * sin(psi) + v .* cos(psi);
+
+% Integrate to get global positions
+X = cumtrapz(t, x_dot);
+Y = cumtrapz(t, y_dot);
+
+% Plot vehicle trajectory (X vs Y)
+figure(9);
+plot(X, Y);
+xlabel('X Position (m)');
+ylabel('Y Position (m)');
+title('Vehicle Track - ' + condition + ' Conditions - ' + tire + ' Tires');
+grid on;
+axis equal;
+
+
+
+%% ==================== Part D1 ====================
 Car_span = [10000, 50000];
 
 [C_rears, stability_list, lambdas_real1, lambdas_real2, lambdas_imag1, lambdas_imag2] = check_stability(Caf, Car_span, 1, m, u, a, b, Iz);
@@ -410,7 +499,7 @@ function [times, lat_vel_results, yaw_rate_results] = solve_diff_Cars(Cars_list,
     grid on
   end
 
-%% ==================== Section D2 ====================
+%% ==================== Part D2 ====================
 
 % Vehicle Parameters
 a = 1.14;          % m
@@ -477,7 +566,7 @@ grid on;
 axis equal;
 legend('Location', 'northwest');
 
-%============ Part F =================
+%% ==================== Part F ====================
 m = 1580;          % kg
 a = 1.1836;          % m
 b = 1.5064;          % m

@@ -250,7 +250,7 @@ for i = 1:length(u_values)
 
 end
 
-%% ============ Part B3 ===========
+%% ==================== Part B3 ====================
 u = 100/3.6; %chaning U to 100km/hr
 tspan = [0 5]; %changing span to 5
 L = a+b;
@@ -336,7 +336,95 @@ lambda = eig(A);
 disp(lambda)
 
 %% ==================== Part C2 & C3 ====================
+clear all; 
+close all;
+clc;
 
+% Cornering stiffness is dependent on delta, road condition, and tire type
+u = 100 / 3.6;     % Convert from km/h to m/s
+delta = 0.1;       % Step steering input (rad)
+tire = "Winter";
+condition = "Icy";
+Caf = 0;
+Car = 0;
+
+if condition == "Normal"
+    Caf = 25000;
+    Car = 21000;
+end
+
+if condition == "Icy"
+    if tire == "Normal"
+        if delta <= 0.06
+            Caf = 20000;
+            Car = 20000; 
+        elseif delta <= 0.2
+            Caf = 100;
+            Car = 100;
+        else
+            Caf = 0;
+            Car = 0;
+        end
+    end
+    if tire == "Winter"
+        if delta <= 0.06
+            Caf = 20000;
+            Car = 20000; 
+        elseif delta <= 0.3
+            Caf = 5000;
+            Car = 5000;
+        else
+            Caf = 0;
+            Car = 0;
+        end 
+    end
+end
+
+m = 1400;          % kg
+a = 1.14;          % m
+b = 1.33;          % m
+Iz = 2420;         % kg·m^2
+
+% Time setup
+tspan = [0,30];
+T = 60;                 % Total simulation time (s)
+dt = 0.01;              % Step Values 
+N = T/dt;               % Number of Steps 
+t = linspace(0,T,N+1);  % Time Vector 
+
+A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
+    (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
+B = [Caf/m; a*Caf/Iz];
+
+f = @(t, x) A * x + B * delta;
+x0 = [0; 0];
+
+
+[t_track, x_track] = solveIVP(f, [0, T], x0, dt, @rk4);
+
+% Extract lateral velocity and yaw rate
+v = x_track(1,:);  % lateral velocity (m/s)
+r = x_track(2,:);  % yaw rate (rad/s)
+
+% Integrate yaw angle over time to get heading direction
+psi = cumtrapz(t, r);  % heading angle (rad)
+
+% Compute global velocities in X and Y directions
+x_dot = u * cos(psi) - v .* sin(psi);
+y_dot = u * sin(psi) + v .* cos(psi);
+
+% Integrate to get global positions
+X = cumtrapz(t, x_dot);
+Y = cumtrapz(t, y_dot);
+
+% Plot vehicle trajectory (X vs Y)
+figure(9);
+plot(X, Y);
+xlabel('X Position (m)');
+ylabel('Y Position (m)');
+title('Vehicle Track - ' + condition + ' Conditions - ' + tire + ' Tires');
+grid on;
+axis equal;
 
 
 
