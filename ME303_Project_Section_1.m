@@ -1,4 +1,4 @@
-%%============ 2.3 Euler Method ============
+%% ==================== 2.3 Euler Method ====================
 
 syms x
 f = exp(x);
@@ -67,7 +67,7 @@ ylabel('Absolute Error');
 legend show;
 hold off;
 
-%=============== 2.4 Eulers Method Grid Spacing ============
+%% ==================== 2.4 Eulers Method Grid Spacing ====================
 clear; clc;
 
 f = @(x, y) exp(x); 

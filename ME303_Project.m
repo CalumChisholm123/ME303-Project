@@ -50,6 +50,7 @@ function [t, y] = solveIVP(f, tspan, y0, h, solver)
     end
 end
 
+%% ==================== Part A1 ====================
 % Runge-Kutta 4th order method
 function ynew = rk4(f, t, y, h)
     k1 = f(t, y);
@@ -58,7 +59,8 @@ function ynew = rk4(f, t, y, h)
     k4 = f(t + h, y + h * k3);
     ynew = y + (h / 6) * (k1 + 2*k2 + 2*k3 + k4);
 end
-%RK4 Plots for Part A1
+
+% RK4 Plots
 figure(1)
 plot(t,x(2,:),"b", LineWidth=2);
 hold on;
@@ -66,6 +68,7 @@ title("Time vs Yaw - RK4")
 ylabel("Yaw Rate (degrees)");
 xlabel("Time");
 grid on;
+
 figure(2)
 plot(t,x(1,:),"b", LineWidth=2);
 hold on;
@@ -75,7 +78,7 @@ xlabel("Time");
 grid on;
 
 
-%=========Euler Method (forward)================
+% Euler Method (forward)
 function [t,x] = euler_1(ode, tspan, x0, dt)
 
     t = tspan(1) : dt : tspan(2);
@@ -87,7 +90,8 @@ function [t,x] = euler_1(ode, tspan, x0, dt)
         x(:, i+1) = x(:, i) + dt * ode(t(i), x(:, i));
     end
 end
-%========Euler Plots for Part A1=================
+
+% Euler Plots
 figure(3);
 hold on;
 plot(t,x(1,:), "b", LineWidth=2);
@@ -101,7 +105,8 @@ xlabel('Times (s)');
 ylabel('Yaw Rate (rad/s)')
 title("Time Vs. Yaw Rate - Euler");
 
-%B1 RK4 Plot
+%% ==================== Part B1 ====================
+% RK4 Plot
 u_values = [20,50,75,100,200,300] / 3.6;
 
 figure(5);
@@ -145,14 +150,14 @@ xlabel('Times (s)');
 ylabel ('Yaw (rad/s)');
 title("Yaw Rate Vs. Various Speeds - RK4");
 
-%% ============ Part A2 ============
-%Confirm the order of solvers
+%% ==================== Part A2 ====================
+% Confirm the order of solvers
 stepSizes = [0.1, 0.05, 0.01, 0.001];
 [euler_errors, RK4_errors] = grid_check_L2_norm(f, tspan, x0, stepSizes, 0.0000001); %10^-7 as ground truth 
 euler_slope = polyfit(log(stepSizes), log(euler_errors), 1);
 RK4_slope = polyfit(log(stepSizes), log(RK4_errors), 1);
 
-%Plot points at t = 1
+% Plot points at t = 1
 [lateral_vels, yaw_rates] = grid_residuals(f, tspan, x0, stepSizes, 1);
 
 function [euler_errors, RK4_errors] = grid_check_L2_norm(ODE, tspan, x0, stepSizes, truth_size)
@@ -209,8 +214,7 @@ function [lateral_vels, yaw_rates] = grid_residuals(ODE, tspan, x0, stepSizes, t
         yaw_rates(2, i) = x(2, temp_index);
     end
 end
-%%
-%============ Part B2 ============
+%% ==================== Part B2 ====================
 clear all;
 clc
 
@@ -244,11 +248,9 @@ for i = 1:length(u_values)
          break;
     end
 
- end
+end
 
-
-
-%============ Part B 3. ===========
+%% ============ Part B3 ===========
 u = 100/3.6; %chaning U to 100km/hr
 tspan = [0 5]; %changing span to 5
 L = a+b;
@@ -326,14 +328,19 @@ ylabel('Yaw Rate (rad)');
 title('Ideal vs Actual Yaw Rate at Different Speeds');
 grid on;
 
-%============ Part C1 ====================
+%% ==================== Part C1 ====================
 A = [- (Caf + Car)/(m*u), (-a*Caf + b*Car)/(m*u) - u;
      (-a*Caf + b*Car)/(Iz*u), - (a^2*Caf + b^2*Car)/(Iz*u)];
 
 lambda = eig(A);
 disp(lambda)
 
-%% ==================== Section D1 ====================
+%% ==================== Part C2 & C3 ====================
+
+
+
+
+%% ==================== Part D1 ====================
 Car_span = [10000, 50000];
 
 [C_rears, stability_list, lambdas_real1, lambdas_real2, lambdas_imag1, lambdas_imag2] = check_stability(Caf, Car_span, 1, m, u, a, b, Iz);
@@ -407,7 +414,7 @@ function [times, lat_vel_results, yaw_rate_results] = solve_diff_Cars(Cars_list,
     grid on
   end
 
-%% ==================== Section D2 ====================
+%% ==================== Part D2 ====================
 
 % Vehicle Parameters
 a = 1.14;          % m
@@ -474,7 +481,7 @@ grid on;
 axis equal;
 legend('Location', 'northwest');
 
-%============ Part F =================
+%% ==================== Part F ====================
 m = 1580;          % kg
 a = 1.1836;          % m
 b = 1.5064;          % m
